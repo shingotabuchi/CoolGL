@@ -11,22 +11,27 @@
 
 struct Vertex {
     glm::vec3 position;
+    glm::vec3 normal;
 };
 
 const char *vertexShaderSrc = R"glsl(
     #version 410 core
     layout(location = 0) in vec3 aPos;
+    layout(location = 1) in vec3 aNormal;
     uniform mat4 uMVP;
+    out vec3 vNormal;
     void main() {
         gl_Position = uMVP * vec4(aPos, 1.0);
+        vNormal = aNormal;
     }
 )glsl";
 
 const char *fragmentShaderSrc = R"glsl(
     #version 410 core
     out vec4 FragColor;
+    in vec3 vNormal;
     void main() {
-        FragColor = vec4(0.0, 0.0, 0.0, 1.0);
+        FragColor = vec4(vNormal, 1.0);
     }
 )glsl";
 
@@ -76,6 +81,7 @@ int main()
     for(unsigned int i = 0; i < m->mNumVertices; i++){
         Vertex vertex;
         vertex.position = glm::vec3(m->mVertices[i].x, m->mVertices[i].y, m->mVertices[i].z);
+        vertex.normal = glm::vec3(m->mNormals[i].x, m->mNormals[i].y, m->mNormals[i].z);
         vertices.push_back(vertex);
     }
     for(unsigned int i = 0; i < m->mNumFaces; i++){
@@ -100,6 +106,9 @@ int main()
 
     glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, sizeof(Vertex), (void *)0);
     glEnableVertexAttribArray(0);
+
+    glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, sizeof(Vertex), (void *)(3 * sizeof(float)));
+    glEnableVertexAttribArray(1);
 
     glBindVertexArray(0);
 
