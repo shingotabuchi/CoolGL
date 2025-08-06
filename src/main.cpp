@@ -98,12 +98,17 @@ int main()
         glClear(GL_COLOR_BUFFER_BIT);
 
         float t = glfwGetTime();
-        glm::mat4 rot = glm::rotate(glm::mat4(1.0f),
-                                    t,
-                                    glm::vec3(0.0f, 0.0f, 1.0f));
+        float y = sin(t * 2.0f) / 2.0f;
+        float s = sin(t * 3.0f) * 0.25f + 0.5f;
+
+        glm::mat4 trans = glm::translate(glm::mat4(1.0f), glm::vec3(0.0f, y, 0.0f));
+        glm::mat4 rot = glm::rotate(glm::mat4(1.0f), t, glm::vec3(0.0f, 0.0f, 1.0f));
+        glm::mat4 scale = glm::scale(glm::mat4(1.0f), glm::vec3(s, s, 1.0f));
+
+        glm::mat4 model = trans * rot * scale;
 
         glUseProgram(shaderProgram);
-        glUniformMatrix4fv(transformLoc, 1, GL_FALSE, glm::value_ptr(rot));
+        glUniformMatrix4fv(transformLoc, 1, GL_FALSE, glm::value_ptr(model));
 
         glBindVertexArray(VAO);
         glDrawArrays(GL_TRIANGLES, 0, 3);
