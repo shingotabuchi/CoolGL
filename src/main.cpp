@@ -1,12 +1,16 @@
 #include <glad/glad.h>
 #include <GLFW/glfw3.h>
+#include <glm/glm.hpp>
+#include <glm/gtc/matrix_transform.hpp>
+#include <glm/gtc/type_ptr.hpp>
 #include <iostream>
 
 const char *vertexShaderSrc = R"glsl(
     #version 410 core
     layout(location = 0) in vec3 aPos;
+    uniform mat4 transform;
     void main() {
-        gl_Position = vec4(aPos, 1.0);
+        gl_Position = transform * vec4(aPos, 1.0);
     }
 )glsl";
 
@@ -31,12 +35,13 @@ int main()
     glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
     glfwWindowHint(GLFW_OPENGL_FORWARD_COMPAT, GL_TRUE);
 
-    GLFWwindow *window = glfwCreateWindow(800, 600, "Cool GL", nullptr, nullptr);
+    GLFWwindow *window = glfwCreateWindow(800, 800, "Cool GL", nullptr, nullptr);
     if (!window)
     {
         std::cerr << "Fail\n";
         return -1;
     }
+
     glfwMakeContextCurrent(window);
     glfwSetFramebufferSizeCallback(window, framebuffer_size_callback);
 
@@ -46,10 +51,13 @@ int main()
         return -1;
     }
 
+    float sqrt3 = 1.7320508075688772f; // sqrt(3)
+    float sqrt3_2 = sqrt3 / 2.0f;      // sqrt(3) / 2
+
     float vertices[] =
-        {-0.5f, -0.5f, 0.0f,
-         0.5f, -0.5f, 0.0f,
-         0.0f, 0.5f, 0.0f};
+        {-sqrt3_2, -0.5f, 0.0f,
+         sqrt3_2, -0.5f, 0.0f,
+         0.0f, 1.0f, 0.0f};
 
     unsigned int VBO, VAO;
     glGenVertexArrays(1, &VAO);
@@ -78,16 +86,24 @@ int main()
     glAttachShader(shaderProgram, vertexShader);
     glAttachShader(shaderProgram, fragmentShader);
     glLinkProgram(shaderProgram);
+    int transformLoc = glGetUniformLocation(shaderProgram, "transform");
 
     glDeleteShader(vertexShader);
     glDeleteShader(fragmentShader);
 
     glUseProgram(shaderProgram);
-
     while (!glfwWindowShouldClose(window))
     {
         glClearColor(0.1f, 0.2f, 0.3f, 1.0f);
         glClear(GL_COLOR_BUFFER_BIT);
+
+        float t = glfwGetTime();
+        glm::mat4 rot = glm::rotate(glm::mat4(1.0f),
+                                    t,
+                                    glm::vec3(0.0f, 0.0f, 1.0f));
+
+        glUseProgram(shaderProgram);
+        glUniformMatrix4fv(transformLoc, 1, GL_FALSE, glm::value_ptr(rot));
 
         glBindVertexArray(VAO);
         glDrawArrays(GL_TRIANGLES, 0, 3);
