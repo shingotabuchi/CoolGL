@@ -1,24 +1,32 @@
 #include <glad/glad.h>
 #include <GLFW/glfw3.h>
 #include <glm/glm.hpp>
-#include <glm/gtc/matrix_transform.hpp>
-#include <glm/gtc/type_ptr.hpp>
 #include <SOIL2/SOIL2.h>
 #include <iostream>
+
+struct Vertex {
+    glm::vec3 position;
+    glm::vec2 uv;
+};
 
 const char *vertexShaderSrc = R"glsl(
     #version 410 core
     layout(location = 0) in vec3 aPos;
+    layout(location = 1) in vec2 aUV;
+    out vec2 vUV;
     void main() {
         gl_Position = vec4(aPos, 1.0);
+        vUV = aUV;
     }
 )glsl";
 
 const char *fragmentShaderSrc = R"glsl(
     #version 410 core
+    in vec2 vUV;
     out vec4 FragColor;
+    uniform sampler2D tex;
     void main() {
-        FragColor = vec4(1.0, 0.5, 0.2, 1.0);
+        FragColor = texture(tex, vUV);
     }
 )glsl";
 
@@ -55,14 +63,25 @@ int main()
     float sqrt3_2 = sqrt3 / 2.0f;      // sqrt(3) / 2
     float static_scale = 0.8f;         // Static scale factor for the triangle
 
-    float vertices[] =
-        {-sqrt3_2, -0.5f, 0.0f,
-         sqrt3_2, -0.5f, 0.0f,
-         0.0f, 1.0f, 0.0f};
-
-    for (int i = 0; i < 9; i++)
+    Vertex vertices[] =
     {
-        vertices[i] *= static_scale;
+        {
+            glm::vec3{-sqrt3_2, -0.5f, 0.0f},
+            glm::vec2{0.0f, 1.0f}
+        },
+        {
+            glm::vec3{sqrt3_2, -0.5f, 0.0f},
+            glm::vec2{1.0f, 1.0f}
+        },
+        {
+            glm::vec3{0.0f, 1.0f, 0.0f},
+            glm::vec2{0.5f, 0.0f}
+        }
+    };
+
+    for (auto &vertex : vertices)
+    {
+        vertex.position *= static_scale;
     }
 
     unsigned int VBO, VAO;
@@ -74,8 +93,11 @@ int main()
     glBindBuffer(GL_ARRAY_BUFFER, VBO);
     glBufferData(GL_ARRAY_BUFFER, sizeof(vertices), vertices, GL_STATIC_DRAW);
 
-    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(float), (void *)0);
+    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, sizeof(Vertex), (void *)0);
     glEnableVertexAttribArray(0);
+
+    glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, sizeof(Vertex), (void *)(3 * sizeof(float)));
+    glEnableVertexAttribArray(1);
 
     glBindBuffer(GL_ARRAY_BUFFER, 0);
     glBindVertexArray(0);
@@ -96,6 +118,34 @@ int main()
     glDeleteShader(vertexShader);
     glDeleteShader(fragmentShader);
 
+    int texW, texH, texChannels;
+    unsigned char* data = SOIL_load_image(
+        "resources/doge.jpg",
+        &texW, &texH, &texChannels,
+        SOIL_LOAD_AUTO
+    );
+    if (!data)
+    {
+        std::cerr << "SOIL2 failed: " << SOIL_last_result() << "\n";
+        return -1;
+    }
+
+    unsigned int texture;
+    glGenTextures(1, &texture);
+    glBindTexture(GL_TEXTURE_2D, texture);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+    glPixelStorei(GL_UNPACK_ALIGNMENT, 1);
+
+    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, texW, texH, 0, GL_RGB, GL_UNSIGNED_BYTE, data);
+    SOIL_free_image_data(data);
+
+    glUseProgram(shaderProgram);
+    int texLoc = glGetUniformLocation(shaderProgram, "tex");
+    glUniform1i(texLoc, 0);
+
     while (!glfwWindowShouldClose(window))
     {
         glClearColor(0.1f, 0.2f, 0.3f, 1.0f);
@@ -104,6 +154,8 @@ int main()
         glUseProgram(shaderProgram);
 
         glBindVertexArray(VAO);
+        glActiveTexture(GL_TEXTURE0);
+        glBindTexture(GL_TEXTURE_2D, texture);
         glDrawArrays(GL_TRIANGLES, 0, 3);
 
         glfwSwapBuffers(window);
