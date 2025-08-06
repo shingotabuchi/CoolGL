@@ -57,5 +57,5 @@ endfunction()
 # ———————————————————————
 # 5) list your demos here
 # ———————————————————————
-add_demo(dancing_triangle   src/dancing_triangle.cpp)
+add_demo(dancing_triangle src/dancing_triangle.cpp)
 add_demo(experiment src/experiment.cpp)
