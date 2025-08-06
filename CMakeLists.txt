@@ -64,8 +64,12 @@ function(add_demo target_name source_file)
 endfunction()
 
 # ———————————————————————
-# 5) list your demos here
+# 5) automatically discover and build demos
 # ———————————————————————
-add_demo(dancing_triangle src/dancing_triangle.cpp)
-add_demo(doge src/doge.cpp)
-add_demo(experiment src/experiment.cpp)
+file(GLOB DEMO_SOURCES "${PROJECT_SOURCE_DIR}/src/demo/*.cpp")
+foreach(DEMO_SOURCE ${DEMO_SOURCES})
+  # Extract filename without extension to use as target name
+  get_filename_component(DEMO_NAME ${DEMO_SOURCE} NAME_WE)
+  add_demo(${DEMO_NAME} ${DEMO_SOURCE})
+  message(STATUS "Added demo: ${DEMO_NAME}")
+endforeach()
