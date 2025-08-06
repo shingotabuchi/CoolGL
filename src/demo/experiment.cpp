@@ -1,7 +1,7 @@
 #include <glad/glad.h>
 #include <GLFW/glfw3.h>
 #include <glm/glm.hpp>
-#include <SOIL2/SOIL2.h>
+#include <soil2.h>
 #include <iostream>
 
 struct Vertex {

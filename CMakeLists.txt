@@ -15,14 +15,17 @@ include_directories(${PROJECT_SOURCE_DIR}/include)
 # ———————————————————————
 add_library(glad STATIC src/glad.c)
 target_include_directories(glad PUBLIC ${PROJECT_SOURCE_DIR}/include)
-file(GLOB_RECURSE SOIL2_SRC
-    "${CMAKE_SOURCE_DIR}/third_party/SOIL2/src/*.c"
-)
-add_library(SOIL2 STATIC ${SOIL2_SRC})
-target_include_directories(SOIL2 PUBLIC
-    "${PROJECT_SOURCE_DIR}/third_party/SOIL2/src"
-)
-target_compile_definitions(SOIL2  PUBLIC GL_SILENCE_DEPRECATION)
+
+set(BUILD_SHARED_LIBS OFF CACHE BOOL "Build libraries as STATIC" FORCE)
+
+add_subdirectory(third_party/SOIL2)
+target_compile_definitions(soil2 PUBLIC GL_SILENCE_DEPRECATION)
+
+set(ASSIMP_BUILD_TESTS    OFF CACHE BOOL "" FORCE)
+set(ASSIMP_BUILD_ASSIMP_TOOLS OFF CACHE BOOL "" FORCE)
+set(ASSIMP_BUILD_SAMPLES  OFF CACHE BOOL "" FORCE)
+set(ASSIMP_NO_EXPORT      ON  CACHE BOOL "" FORCE)
+add_subdirectory(third_party/assimp)
 
 # ———————————————————————
 # 3) Find external libs
@@ -52,7 +55,8 @@ set(COMMON_LIBS
   glfw
   glm::glm
   ${PLAT_LIBS}
-  SOIL2
+  soil2
+  assimp
 )
 
 # ———————————————————————
