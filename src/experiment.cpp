@@ -8,9 +8,8 @@
 const char *vertexShaderSrc = R"glsl(
     #version 410 core
     layout(location = 0) in vec3 aPos;
-    uniform mat4 transform;
     void main() {
-        gl_Position = transform * vec4(aPos, 1.0);
+        gl_Position = vec4(aPos, 1.0);
     }
 )glsl";
 
@@ -53,11 +52,17 @@ int main()
 
     float sqrt3 = 1.7320508075688772f; // sqrt(3)
     float sqrt3_2 = sqrt3 / 2.0f;      // sqrt(3) / 2
+    float static_scale = 0.8f;         // Static scale factor for the triangle
 
     float vertices[] =
         {-sqrt3_2, -0.5f, 0.0f,
          sqrt3_2, -0.5f, 0.0f,
          0.0f, 1.0f, 0.0f};
+
+    for (int i = 0; i < 9; i++)
+    {
+        vertices[i] *= static_scale;
+    }
 
     unsigned int VBO, VAO;
     glGenVertexArrays(1, &VAO);
@@ -86,29 +91,16 @@ int main()
     glAttachShader(shaderProgram, vertexShader);
     glAttachShader(shaderProgram, fragmentShader);
     glLinkProgram(shaderProgram);
-    int transformLoc = glGetUniformLocation(shaderProgram, "transform");
 
     glDeleteShader(vertexShader);
     glDeleteShader(fragmentShader);
 
-    glUseProgram(shaderProgram);
     while (!glfwWindowShouldClose(window))
     {
         glClearColor(0.1f, 0.2f, 0.3f, 1.0f);
         glClear(GL_COLOR_BUFFER_BIT);
 
-        float t = glfwGetTime();
-        float y = sin(t * 2.0f) / 2.0f;
-        float s = sin(t * 3.0f) * 0.25f + 0.5f;
-
-        glm::mat4 trans = glm::translate(glm::mat4(1.0f), glm::vec3(0.0f, y, 0.0f));
-        glm::mat4 rot = glm::rotate(glm::mat4(1.0f), t, glm::vec3(0.0f, 0.0f, 1.0f));
-        glm::mat4 scale = glm::scale(glm::mat4(1.0f), glm::vec3(s, s, 1.0f));
-
-        glm::mat4 model = trans * rot * scale;
-
         glUseProgram(shaderProgram);
-        glUniformMatrix4fv(transformLoc, 1, GL_FALSE, glm::value_ptr(model));
 
         glBindVertexArray(VAO);
         glDrawArrays(GL_TRIANGLES, 0, 3);

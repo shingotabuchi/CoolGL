@@ -91,7 +91,6 @@ int main()
     glDeleteShader(vertexShader);
     glDeleteShader(fragmentShader);
 
-    glUseProgram(shaderProgram);
     while (!glfwWindowShouldClose(window))
     {
         glClearColor(0.1f, 0.2f, 0.3f, 1.0f);
