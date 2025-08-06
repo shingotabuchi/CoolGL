@@ -27,8 +27,8 @@ target_compile_definitions(SOIL2  PUBLIC GL_SILENCE_DEPRECATION)
 # ———————————————————————
 # 3) Find external libs
 # ———————————————————————
-find_package(glfw3 REQUIRED)
-find_package(glm   REQUIRED)
+find_package(glfw3 CONFIG REQUIRED)
+find_package(glm CONFIG REQUIRED)
 
 # platform-specific frameworks
 if(APPLE)
