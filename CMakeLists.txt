@@ -11,10 +11,18 @@ set(CMAKE_CXX_STANDARD_REQUIRED  ON)
 include_directories(${PROJECT_SOURCE_DIR}/include)
 
 # ———————————————————————
-# 2) Build glad
+# 2) Build static libraries
 # ———————————————————————
 add_library(glad STATIC src/glad.c)
 target_include_directories(glad PUBLIC ${PROJECT_SOURCE_DIR}/include)
+file(GLOB_RECURSE SOIL2_SRC
+    "${CMAKE_SOURCE_DIR}/third_party/SOIL2/src/*.c"
+)
+add_library(SOIL2 STATIC ${SOIL2_SRC})
+target_include_directories(SOIL2 PUBLIC
+    "${PROJECT_SOURCE_DIR}/third_party/SOIL2/src"
+)
+target_compile_definitions(SOIL2  PUBLIC GL_SILENCE_DEPRECATION)
 
 # ———————————————————————
 # 3) Find external libs
@@ -44,6 +52,7 @@ set(COMMON_LIBS
   glfw
   glm::glm
   ${PLAT_LIBS}
+  SOIL2
 )
 
 # ———————————————————————
