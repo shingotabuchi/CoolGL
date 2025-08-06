@@ -19,9 +19,11 @@ const char *vertexShaderSrc = R"glsl(
     layout(location = 0) in vec3 aPos;
     layout(location = 1) in vec3 aNormal;
     uniform mat4 uMVP;
+    out vec3 vPos;
     out vec3 vNormal;
     void main() {
         gl_Position = uMVP * vec4(aPos, 1.0);
+        vPos = aPos;
         vNormal = aNormal;
     }
 )glsl";
@@ -29,9 +31,15 @@ const char *vertexShaderSrc = R"glsl(
 const char *fragmentShaderSrc = R"glsl(
     #version 410 core
     out vec4 FragColor;
+    in vec3 vPos;
     in vec3 vNormal;
+    uniform vec3 uLightPos;
+    uniform vec3 uLightColor;
     void main() {
-        FragColor = vec4(vNormal, 1.0);
+        vec3 lightDir = normalize(uLightPos - vPos);
+        float diff = max(dot(vNormal, lightDir), 0.0);
+        vec3 diffuse = uLightColor * diff;
+        FragColor = vec4(diffuse, 1.0);
     }
 )glsl";
 
@@ -128,8 +136,17 @@ int main()
     glDeleteShader(vertexShader);
     glDeleteShader(fragmentShader);
 
+    glUseProgram(shaderProgram);
+
     int locMVP = glGetUniformLocation(shaderProgram, "uMVP");
-    
+    int locLightPos = glGetUniformLocation(shaderProgram, "uLightPos");
+    int locLightColor = glGetUniformLocation(shaderProgram, "uLightColor");
+
+    glm::vec3 lightPos = glm::vec3(0.0f, 0.0f, 10000.0f);
+    glm::vec3 lightColor = glm::vec3(1.0f, 1.0f, 1.0f);
+    glUniform3fv(locLightPos, 1, glm::value_ptr(lightPos));
+    glUniform3fv(locLightColor, 1, glm::value_ptr(lightColor));
+
     glm::mat4 model = glm::mat4(1.0f);
     glm::mat4 view = glm::translate(glm::mat4(1.0f), glm::vec3(0.0f, 0.0f, -5.0f));
     glm::mat4 projection = glm::perspective(glm::radians(45.0f), 800.0f / 800.0f, 0.1f, 100.0f);
@@ -140,7 +157,6 @@ int main()
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
         float t = glfwGetTime();
         model = glm::rotate(glm::mat4(1.0f), t, glm::vec3(0.0f, 1.0f, 0.0f));
-        glUseProgram(shaderProgram);
         glm::mat4 mvp = projection * view * model;
         glUniformMatrix4fv(locMVP, 1, GL_FALSE, glm::value_ptr(mvp));
         glBindVertexArray(VAO);
