@@ -1,32 +1,32 @@
 #include <glad/glad.h>
 #include <GLFW/glfw3.h>
 #include <glm/glm.hpp>
+#include <glm/gtc/matrix_transform.hpp>
+#include <glm/gtc/type_ptr.hpp>
 #include <soil2.h>
+#include <assimp/Importer.hpp>
+#include <assimp/scene.h>
+#include <assimp/postprocess.h>
 #include <iostream>
 
 struct Vertex {
     glm::vec3 position;
-    glm::vec2 uv;
 };
 
 const char *vertexShaderSrc = R"glsl(
     #version 410 core
     layout(location = 0) in vec3 aPos;
-    layout(location = 1) in vec2 aUV;
-    out vec2 vUV;
+    uniform mat4 uMVP;
     void main() {
-        gl_Position = vec4(aPos, 1.0);
-        vUV = aUV;
+        gl_Position = uMVP * vec4(aPos, 1.0);
     }
 )glsl";
 
 const char *fragmentShaderSrc = R"glsl(
     #version 410 core
-    in vec2 vUV;
     out vec4 FragColor;
-    uniform sampler2D tex;
     void main() {
-        FragColor = texture(tex, vUV);
+        FragColor = vec4(0.0, 0.0, 0.0, 1.0);
     }
 )glsl";
 
@@ -59,47 +59,48 @@ int main()
         return -1;
     }
 
-    float sqrt3 = 1.7320508075688772f; // sqrt(3)
-    float sqrt3_2 = sqrt3 / 2.0f;      // sqrt(3) / 2
-    float static_scale = 0.8f;         // Static scale factor for the triangle
+    glEnable(GL_DEPTH_TEST);
 
-    Vertex vertices[] =
-    {
-        {
-            glm::vec3{-sqrt3_2, -0.5f, 0.0f},
-            glm::vec2{0.0f, 1.0f}
-        },
-        {
-            glm::vec3{sqrt3_2, -0.5f, 0.0f},
-            glm::vec2{1.0f, 1.0f}
-        },
-        {
-            glm::vec3{0.0f, 1.0f, 0.0f},
-            glm::vec2{0.5f, 0.0f}
+    Assimp::Importer importer;
+    const aiScene *scene = importer.ReadFile(
+        "resources/monkey.obj", 
+        aiProcess_Triangulate
+    );
+    if(!scene || !scene->HasMeshes()){
+        std::cerr<<"Failed to load mesh\n"; return -1;
+    }
+    aiMesh* m = scene->mMeshes[0];
+
+    std::vector<Vertex> vertices;
+    std::vector<unsigned int> indices;
+    for(unsigned int i = 0; i < m->mNumVertices; i++){
+        Vertex vertex;
+        vertex.position = glm::vec3(m->mVertices[i].x, m->mVertices[i].y, m->mVertices[i].z);
+        vertices.push_back(vertex);
+    }
+    for(unsigned int i = 0; i < m->mNumFaces; i++){
+        aiFace face = m->mFaces[i];
+        for(unsigned int j = 0; j < face.mNumIndices; j++){
+            indices.push_back(face.mIndices[j]);
         }
-    };
-
-    for (auto &vertex : vertices)
-    {
-        vertex.position *= static_scale;
     }
 
-    unsigned int VBO, VAO;
+    unsigned int VAO, VBO, EBO;
     glGenVertexArrays(1, &VAO);
     glGenBuffers(1, &VBO);
+    glGenBuffers(1, &EBO);
 
     glBindVertexArray(VAO);
 
     glBindBuffer(GL_ARRAY_BUFFER, VBO);
-    glBufferData(GL_ARRAY_BUFFER, sizeof(vertices), vertices, GL_STATIC_DRAW);
+    glBufferData(GL_ARRAY_BUFFER, vertices.size() * sizeof(Vertex), vertices.data(), GL_STATIC_DRAW);
+
+    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, EBO);
+    glBufferData(GL_ELEMENT_ARRAY_BUFFER, indices.size() * sizeof(unsigned int), indices.data(), GL_STATIC_DRAW);
 
     glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, sizeof(Vertex), (void *)0);
     glEnableVertexAttribArray(0);
 
-    glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, sizeof(Vertex), (void *)(3 * sizeof(float)));
-    glEnableVertexAttribArray(1);
-
-    glBindBuffer(GL_ARRAY_BUFFER, 0);
     glBindVertexArray(0);
 
     unsigned int vertexShader = glCreateShader(GL_VERTEX_SHADER);
@@ -118,45 +119,22 @@ int main()
     glDeleteShader(vertexShader);
     glDeleteShader(fragmentShader);
 
-    int texW, texH, texChannels;
-    unsigned char* data = SOIL_load_image(
-        "resources/doge.jpg",
-        &texW, &texH, &texChannels,
-        SOIL_LOAD_AUTO
-    );
-    if (!data)
-    {
-        std::cerr << "SOIL2 failed: " << SOIL_last_result() << "\n";
-        return -1;
-    }
-
-    unsigned int texture;
-    glGenTextures(1, &texture);
-    glBindTexture(GL_TEXTURE_2D, texture);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-    glPixelStorei(GL_UNPACK_ALIGNMENT, 1);
-
-    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, texW, texH, 0, GL_RGB, GL_UNSIGNED_BYTE, data);
-    SOIL_free_image_data(data);
-
-    glUseProgram(shaderProgram);
-    int texLoc = glGetUniformLocation(shaderProgram, "tex");
-    glUniform1i(texLoc, 0);
+    int locMVP = glGetUniformLocation(shaderProgram, "uMVP");
+    
+    glm::mat4 model = glm::mat4(1.0f);
+    glm::mat4 view = glm::translate(glm::mat4(1.0f), glm::vec3(0.0f, 0.0f, -5.0f));
+    glm::mat4 projection = glm::perspective(glm::radians(45.0f), 800.0f / 800.0f, 0.1f, 100.0f);
 
     while (!glfwWindowShouldClose(window))
     {
         glClearColor(0.1f, 0.2f, 0.3f, 1.0f);
-        glClear(GL_COLOR_BUFFER_BIT);
+        glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
         glUseProgram(shaderProgram);
-
+        glm::mat4 mvp = projection * view * model;
+        glUniformMatrix4fv(locMVP, 1, GL_FALSE, glm::value_ptr(mvp));
         glBindVertexArray(VAO);
-        glActiveTexture(GL_TEXTURE0);
-        glBindTexture(GL_TEXTURE_2D, texture);
-        glDrawArrays(GL_TRIANGLES, 0, 3);
+        glDrawElements(GL_TRIANGLES, indices.size(), GL_UNSIGNED_INT, 0);
 
         glfwSwapBuffers(window);
         glfwPollEvents();
