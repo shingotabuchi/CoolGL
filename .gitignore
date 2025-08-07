@@ -41,3 +41,6 @@
 
 # build directories
 build/
+
+# editor directories
+.vscode/

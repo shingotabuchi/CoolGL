@@ -3,13 +3,14 @@
 #include <glm/glm.hpp>
 #include <glm/gtc/matrix_transform.hpp>
 #include <glm/gtc/type_ptr.hpp>
-#include <soil2.h>
+#include <SOIL2.h>
 #include <assimp/Importer.hpp>
 #include <assimp/scene.h>
 #include <assimp/postprocess.h>
 #include <iostream>
 
-struct Vertex {
+struct Vertex
+{
     glm::vec3 position;
     glm::vec3 normal;
 };
@@ -76,25 +77,29 @@ int main()
 
     Assimp::Importer importer;
     const aiScene *scene = importer.ReadFile(
-        "resources/monkey.obj", 
-        aiProcess_Triangulate
-    );
-    if(!scene || !scene->HasMeshes()){
-        std::cerr<<"Failed to load mesh\n"; return -1;
+        "resources/monkey.obj",
+        aiProcess_Triangulate);
+    if (!scene || !scene->HasMeshes())
+    {
+        std::cerr << "Failed to load mesh\n";
+        return -1;
     }
-    aiMesh* m = scene->mMeshes[0];
+    aiMesh *m = scene->mMeshes[0];
 
     std::vector<Vertex> vertices;
     std::vector<unsigned int> indices;
-    for(unsigned int i = 0; i < m->mNumVertices; i++){
+    for (unsigned int i = 0; i < m->mNumVertices; i++)
+    {
         Vertex vertex;
         vertex.position = glm::vec3(m->mVertices[i].x, m->mVertices[i].y, m->mVertices[i].z);
         vertex.normal = glm::vec3(m->mNormals[i].x, m->mNormals[i].y, m->mNormals[i].z);
         vertices.push_back(vertex);
     }
-    for(unsigned int i = 0; i < m->mNumFaces; i++){
+    for (unsigned int i = 0; i < m->mNumFaces; i++)
+    {
         aiFace face = m->mFaces[i];
-        for(unsigned int j = 0; j < face.mNumIndices; j++){
+        for (unsigned int j = 0; j < face.mNumIndices; j++)
+        {
             indices.push_back(face.mIndices[j]);
         }
     }

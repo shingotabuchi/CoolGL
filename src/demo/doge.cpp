@@ -1,10 +1,11 @@
 #include <glad/glad.h>
 #include <GLFW/glfw3.h>
 #include <glm/glm.hpp>
-#include <soil2.h>
+#include <SOIL2.h>
 #include <iostream>
 
-struct Vertex {
+struct Vertex
+{
     glm::vec3 position;
     glm::vec2 uv;
 };
@@ -64,20 +65,13 @@ int main()
     float static_scale = 0.8f;         // Static scale factor for the triangle
 
     Vertex vertices[] =
-    {
         {
-            glm::vec3{-sqrt3_2, -0.5f, 0.0f},
-            glm::vec2{0.0f, 1.0f}
-        },
-        {
-            glm::vec3{sqrt3_2, -0.5f, 0.0f},
-            glm::vec2{1.0f, 1.0f}
-        },
-        {
-            glm::vec3{0.0f, 1.0f, 0.0f},
-            glm::vec2{0.5f, 0.0f}
-        }
-    };
+            {glm::vec3{-sqrt3_2, -0.5f, 0.0f},
+             glm::vec2{0.0f, 1.0f}},
+            {glm::vec3{sqrt3_2, -0.5f, 0.0f},
+             glm::vec2{1.0f, 1.0f}},
+            {glm::vec3{0.0f, 1.0f, 0.0f},
+             glm::vec2{0.5f, 0.0f}}};
 
     for (auto &vertex : vertices)
     {
@@ -119,11 +113,10 @@ int main()
     glDeleteShader(fragmentShader);
 
     int texW, texH, texChannels;
-    unsigned char* data = SOIL_load_image(
+    unsigned char *data = SOIL_load_image(
         "resources/doge.jpg",
         &texW, &texH, &texChannels,
-        SOIL_LOAD_AUTO
-    );
+        SOIL_LOAD_AUTO);
     if (!data)
     {
         std::cerr << "SOIL2 failed: " << SOIL_last_result() << "\n";
