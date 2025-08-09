@@ -60,15 +60,25 @@ set(COMMON_LIBS
 )
 
 # ———————————————————————
-# 4) helper to add a demo
+# 4) engine library
+# ———————————————————————
+file(GLOB ENGINE_SOURCES
+  ${PROJECT_SOURCE_DIR}/src/engine/*.cpp
+)
+add_library(engine STATIC ${ENGINE_SOURCES})
+target_include_directories(engine PUBLIC ${PROJECT_SOURCE_DIR}/src)
+target_link_libraries(engine PUBLIC ${COMMON_LIBS})
+
+# ———————————————————————
+# 5) helper to add a demo
 # ———————————————————————
 function(add_demo target_name source_file)
   add_executable(${target_name} ${source_file})
-  target_link_libraries(${target_name} PRIVATE ${COMMON_LIBS})
+  target_link_libraries(${target_name} PRIVATE engine ${COMMON_LIBS})
 endfunction()
 
 # ———————————————————————
-# 5) automatically discover and build demos
+# 6) automatically discover and build demos
 # ———————————————————————
 file(GLOB DEMO_SOURCES "${PROJECT_SOURCE_DIR}/src/demo/*.cpp")
 foreach(DEMO_SOURCE ${DEMO_SOURCES})

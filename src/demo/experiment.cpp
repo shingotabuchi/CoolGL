@@ -3,17 +3,9 @@
 #include <glm/glm.hpp>
 #include <glm/gtc/matrix_transform.hpp>
 #include <glm/gtc/type_ptr.hpp>
-#include <SOIL2.h>
-#include <assimp/Importer.hpp>
-#include <assimp/scene.h>
-#include <assimp/postprocess.h>
+#include "engine/ModelLoader.h"
+#include "engine/Shader.h"
 #include <iostream>
-
-struct Vertex
-{
-    glm::vec3 position;
-    glm::vec3 normal;
-};
 
 const char *vertexShaderSrc = R"glsl(
     #version 410 core
@@ -75,82 +67,15 @@ int main()
 
     glEnable(GL_DEPTH_TEST);
 
-    Assimp::Importer importer;
-    const aiScene *scene = importer.ReadFile(
-        "resources/monkey.obj",
-        aiProcess_Triangulate);
-    if (!scene || !scene->HasMeshes())
-    {
-        std::cerr << "Failed to load mesh\n";
-        return -1;
-    }
-    aiMesh *m = scene->mMeshes[0];
+    Mesh mesh = ModelLoader::loadFirstMeshFromFile("resources/cat/cat.fbx");
 
-    std::vector<Vertex> vertices;
-    std::vector<unsigned int> indices;
-    for (unsigned int i = 0; i < m->mNumVertices; i++)
-    {
-        Vertex vertex;
-        vertex.position = glm::vec3(m->mVertices[i].x, m->mVertices[i].y, m->mVertices[i].z);
-        vertex.normal = glm::vec3(m->mNormals[i].x, m->mNormals[i].y, m->mNormals[i].z);
-        vertices.push_back(vertex);
-    }
-    for (unsigned int i = 0; i < m->mNumFaces; i++)
-    {
-        aiFace face = m->mFaces[i];
-        for (unsigned int j = 0; j < face.mNumIndices; j++)
-        {
-            indices.push_back(face.mIndices[j]);
-        }
-    }
-
-    unsigned int VAO, VBO, EBO;
-    glGenVertexArrays(1, &VAO);
-    glGenBuffers(1, &VBO);
-    glGenBuffers(1, &EBO);
-
-    glBindVertexArray(VAO);
-
-    glBindBuffer(GL_ARRAY_BUFFER, VBO);
-    glBufferData(GL_ARRAY_BUFFER, vertices.size() * sizeof(Vertex), vertices.data(), GL_STATIC_DRAW);
-
-    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, EBO);
-    glBufferData(GL_ELEMENT_ARRAY_BUFFER, indices.size() * sizeof(unsigned int), indices.data(), GL_STATIC_DRAW);
-
-    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, sizeof(Vertex), (void *)0);
-    glEnableVertexAttribArray(0);
-
-    glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, sizeof(Vertex), (void *)(3 * sizeof(float)));
-    glEnableVertexAttribArray(1);
-
-    glBindVertexArray(0);
-
-    unsigned int vertexShader = glCreateShader(GL_VERTEX_SHADER);
-    glShaderSource(vertexShader, 1, &vertexShaderSrc, nullptr);
-    glCompileShader(vertexShader);
-
-    unsigned int fragmentShader = glCreateShader(GL_FRAGMENT_SHADER);
-    glShaderSource(fragmentShader, 1, &fragmentShaderSrc, nullptr);
-    glCompileShader(fragmentShader);
-
-    unsigned int shaderProgram = glCreateProgram();
-    glAttachShader(shaderProgram, vertexShader);
-    glAttachShader(shaderProgram, fragmentShader);
-    glLinkProgram(shaderProgram);
-
-    glDeleteShader(vertexShader);
-    glDeleteShader(fragmentShader);
-
-    glUseProgram(shaderProgram);
-
-    int locMVP = glGetUniformLocation(shaderProgram, "uMVP");
-    int locLightPos = glGetUniformLocation(shaderProgram, "uLightPos");
-    int locLightColor = glGetUniformLocation(shaderProgram, "uLightColor");
+    Shader shader(vertexShaderSrc, fragmentShaderSrc);
+    shader.use();
 
     glm::vec3 lightPos = glm::vec3(0.0f, 0.0f, 10000.0f);
     glm::vec3 lightColor = glm::vec3(1.0f, 1.0f, 1.0f);
-    glUniform3fv(locLightPos, 1, glm::value_ptr(lightPos));
-    glUniform3fv(locLightColor, 1, glm::value_ptr(lightColor));
+    shader.setVec3("uLightPos", lightPos);
+    shader.setVec3("uLightColor", lightColor);
 
     glm::mat4 model = glm::mat4(1.0f);
     glm::mat4 view = glm::translate(glm::mat4(1.0f), glm::vec3(0.0f, 0.0f, -5.0f));
@@ -163,9 +88,9 @@ int main()
         float t = glfwGetTime();
         model = glm::rotate(glm::mat4(1.0f), t, glm::vec3(0.0f, 1.0f, 0.0f));
         glm::mat4 mvp = projection * view * model;
-        glUniformMatrix4fv(locMVP, 1, GL_FALSE, glm::value_ptr(mvp));
-        glBindVertexArray(VAO);
-        glDrawElements(GL_TRIANGLES, indices.size(), GL_UNSIGNED_INT, 0);
+        shader.setMat4("uMVP", mvp);
+        mesh.bind();
+        mesh.draw();
 
         glfwSwapBuffers(window);
         glfwPollEvents();
