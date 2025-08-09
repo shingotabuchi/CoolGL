@@ -13,6 +13,10 @@ public:
     void SetOwner(GameObject* owner) { owner_ = owner; }
     GameObject* Owner() const { return owner_; }
 
+    // Lifecycle helpers for performance and correctness
+    bool IsStarted() const { return started_; }
+    void MarkStarted() { started_ = true; }
+
     virtual void OnAttach() {}
     virtual void OnDetach() {}
     virtual void OnStart() {}
@@ -21,6 +25,7 @@ public:
 
 protected:
     GameObject* owner_ = nullptr;
+    bool started_ = false;
 };
 
 

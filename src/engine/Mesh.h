@@ -33,6 +33,7 @@ private:
     GLuint vbo_ = 0;
     GLuint ebo_ = 0;
     GLsizei index_count_ = 0;
+    // Future: consider primitive restart or 32-bit indices based on size
 };
 
 

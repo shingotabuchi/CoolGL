@@ -12,11 +12,10 @@ void GameObject::Update(float time_seconds)
 {
     for (auto& c : components_)
     {
-        auto type_id = std::type_index(typeid(*c));
-        if (!started_[type_id])
+        if (!c->IsStarted())
         {
             c->OnStart();
-            started_[type_id] = true;
+            c->MarkStarted();
         }
         c->OnUpdate(time_seconds);
     }

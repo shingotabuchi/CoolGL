@@ -8,7 +8,7 @@ Mesh ModelLoader::LoadFirstMeshFromFile(const std::string& path)
 {
     Assimp::Importer importer;
     const aiScene* scene = importer.ReadFile(path,
-        aiProcess_Triangulate);
+        aiProcess_Triangulate | aiProcess_JoinIdenticalVertices | aiProcess_ImproveCacheLocality | aiProcess_GenNormals);
     if (!scene || !scene->HasMeshes())
     {
         throw std::runtime_error("Failed to load mesh from: " + path);
@@ -22,6 +22,8 @@ Mesh ModelLoader::FromAiMesh(aiMesh* mesh)
     std::vector<MeshVertex> vertices;
     std::vector<unsigned int> indices;
     vertices.reserve(mesh->mNumVertices);
+    // Reserve three indices per face for triangulated meshes
+    indices.reserve(mesh->mNumFaces * 3u);
 
     for (unsigned int i = 0; i < mesh->mNumVertices; ++i)
     {

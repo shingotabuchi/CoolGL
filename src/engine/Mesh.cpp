@@ -63,7 +63,13 @@ void Mesh::CreateBuffers(const std::vector<MeshVertex>& vertices, const std::vec
 
 void Mesh::Bind() const
 {
-    glBindVertexArray(vao_);
+    // Avoid redundant VAO binds (optional micro-opt): check current VAO
+    GLint current = 0;
+    glGetIntegerv(GL_VERTEX_ARRAY_BINDING, &current);
+    if (static_cast<GLuint>(current) != vao_)
+    {
+        glBindVertexArray(vao_);
+    }
 }
 
 void Mesh::Draw() const

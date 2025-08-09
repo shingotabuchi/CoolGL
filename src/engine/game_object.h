@@ -27,7 +27,12 @@ public:
         comp->SetOwner(this);
         T* raw = comp.get();
         components_.push_back(std::move(comp));
-        started_[std::type_index(typeid(T))] = false;
+        // Cache first component of a given type for fast lookup
+        const std::type_index typeId = std::type_index(typeid(T));
+        if (component_cache_.find(typeId) == component_cache_.end())
+        {
+            component_cache_[typeId] = raw;
+        }
         raw->OnAttach();
         return raw;
     }
@@ -35,10 +40,18 @@ public:
     template<typename T>
     T* GetComponent()
     {
+        const std::type_index typeId = std::type_index(typeid(T));
+        auto it = component_cache_.find(typeId);
+        if (it != component_cache_.end())
+        {
+            return static_cast<T*>(it->second);
+        }
+        // Fallback: scan and populate cache for next time
         for (auto& c : components_)
         {
             if (auto casted = dynamic_cast<T*>(c.get()))
             {
+                component_cache_[typeId] = casted;
                 return casted;
             }
         }
@@ -50,7 +63,7 @@ public:
 
 private:
     std::vector<std::unique_ptr<Component>> components_;
-    std::unordered_map<std::type_index, bool> started_;
+    std::unordered_map<std::type_index, Component*> component_cache_;
 };
 
 

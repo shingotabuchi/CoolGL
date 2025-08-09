@@ -89,19 +89,46 @@ void Shader::link(GLuint vertex_shader, GLuint fragment_shader)
 
 void Shader::use() const
 {
-    glUseProgram(program_id_);
+    GLint current = 0;
+    glGetIntegerv(GL_CURRENT_PROGRAM, &current);
+    if (static_cast<GLuint>(current) != program_id_)
+    {
+        glUseProgram(program_id_);
+    }
 }
 
 void Shader::set_mat4(const char* name, const glm::mat4& value) const
 {
-    GLint loc = glGetUniformLocation(program_id_, name);
+    GLint loc = get_uniform_location_cached(name);
     glUniformMatrix4fv(loc, 1, GL_FALSE, glm::value_ptr(value));
 }
 
 void Shader::set_vec3(const char* name, const glm::vec3& value) const
 {
-    GLint loc = glGetUniformLocation(program_id_, name);
+    GLint loc = get_uniform_location_cached(name);
     glUniform3fv(loc, 1, glm::value_ptr(value));
+}
+
+GLint Shader::get_uniform_location_cached(const char* name) const
+{
+    auto it = uniform_location_cache_.find(name);
+    if (it != uniform_location_cache_.end())
+    {
+        return it->second;
+    }
+    GLint loc = glGetUniformLocation(program_id_, name);
+    uniform_location_cache_.emplace(name, loc);
+    return loc;
+}
+
+void Shader::set_mat4(GLint location, const glm::mat4& value) const
+{
+    glUniformMatrix4fv(location, 1, GL_FALSE, glm::value_ptr(value));
+}
+
+void Shader::set_vec3(GLint location, const glm::vec3& value) const
+{
+    glUniform3fv(location, 1, glm::value_ptr(value));
 }
 
 

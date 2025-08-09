@@ -10,12 +10,20 @@ public:
 
     void OnUpdate(float timeSeconds) override
     {
-        Transform* t = Owner() ? Owner()->GetComponent<Transform>() : nullptr;
+        if (!cached_transform_ && Owner())
+        {
+            cached_transform_ = Owner()->GetComponent<Transform>();
+        }
+        Transform* t = cached_transform_;
         if (t)
         {
             t->rotation_euler.y = timeSeconds * speedRadiansPerSec;
         }
     }
+
+    void OnDetach() override { cached_transform_ = nullptr; }
+private:
+    Transform* cached_transform_ = nullptr;
 };
 
 
