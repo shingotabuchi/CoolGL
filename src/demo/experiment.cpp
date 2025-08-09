@@ -8,7 +8,6 @@
 #include "engine/game_object.h"
 #include "engine/transform.h"
 #include "engine/mesh_renderer.h"
-#include "engine/Rotator.h"
 
 static const char *vertexShaderSrc = R"glsl(
     #version 410 core
@@ -48,6 +47,7 @@ public:
         GameObject& cat = scene_.CreateObject();
         auto* transform = cat.AddComponent<Transform>();
         transform->position = glm::vec3(0.0f, 0.0f, 0.0f);
+        cat_transform_ = transform;
 
         Mesh mesh = ModelLoader::LoadFirstMeshFromFile("resources/cat/cat.fbx");
         Shader shader(vertexShaderSrc, fragmentShaderSrc);
@@ -55,12 +55,15 @@ public:
         renderer->light_pos = glm::vec3(0.0f, 0.0f, 10000.0f);
         renderer->light_color = glm::vec3(1.0f, 1.0f, 1.0f);
 
-        cat.AddComponent<Rotator>()->speedRadiansPerSec = 1.0f;
     }
 
 protected:
     void OnUpdate(float timeSeconds) override
     {
+        if (cat_transform_)
+        {
+            cat_transform_->rotation_euler.y = timeSeconds * catRotationSpeed_;
+        }
         scene_.Update(timeSeconds);
     }
 
@@ -73,6 +76,8 @@ protected:
 
 private:
     Scene scene_{};
+    Transform* cat_transform_ = nullptr;
+    float catRotationSpeed_ = 1.0f;
 };
 
 int main()
