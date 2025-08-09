@@ -1,13 +1,11 @@
-#include <glad/glad.h>
-#include <GLFW/glfw3.h>
 #include <glm/glm.hpp>
 #include <glm/gtc/matrix_transform.hpp>
-#include <glm/gtc/type_ptr.hpp>
+#include "engine/Application.h"
+#include "engine/Renderer.h"
 #include "engine/ModelLoader.h"
 #include "engine/Shader.h"
-#include <iostream>
 
-const char *vertexShaderSrc = R"glsl(
+static const char *vertexShaderSrc = R"glsl(
     #version 410 core
     layout(location = 0) in vec3 aPos;
     layout(location = 1) in vec3 aNormal;
@@ -21,7 +19,7 @@ const char *vertexShaderSrc = R"glsl(
     }
 )glsl";
 
-const char *fragmentShaderSrc = R"glsl(
+static const char *fragmentShaderSrc = R"glsl(
     #version 410 core
     out vec4 FragColor;
     in vec3 vPos;
@@ -36,66 +34,42 @@ const char *fragmentShaderSrc = R"glsl(
     }
 )glsl";
 
-void framebuffer_size_callback(GLFWwindow *w, int w_, int h)
+class ExperimentApp : public Application
 {
-    glViewport(0, 0, w_, h);
-}
+public:
+    ExperimentApp() : Application(800, 800, "Cool GL")
+    {
+        mesh_ = ModelLoader::loadFirstMeshFromFile("resources/cat/cat.fbx");
+        shader_ = Shader(vertexShaderSrc, fragmentShaderSrc);
+        lightPos_ = glm::vec3(0.0f, 0.0f, 10000.0f);
+        lightColor_ = glm::vec3(1.0f, 1.0f, 1.0f);
+    }
+
+protected:
+    void onUpdate(float timeSeconds) override
+    {
+        model_ = glm::rotate(glm::mat4(1.0f), timeSeconds, glm::vec3(0.0f, 1.0f, 0.0f));
+    }
+
+    void onRender(const glm::mat4& projection, const glm::mat4& view) override
+    {
+        static Renderer renderer;
+        renderer.beginFrame(0.1f, 0.2f, 0.3f, 1.0f);
+        glm::mat4 mvp = projection * view * model_;
+        renderer.drawMesh(mesh_, shader_, mvp, lightPos_, lightColor_);
+    }
+
+private:
+    Mesh mesh_{};
+    Shader shader_{};
+    glm::mat4 model_{1.0f};
+    glm::vec3 lightPos_{};
+    glm::vec3 lightColor_{};
+};
 
 int main()
 {
-    glfwInit();
-    glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 4);
-    glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 1);
-    glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
-    glfwWindowHint(GLFW_OPENGL_FORWARD_COMPAT, GL_TRUE);
-
-    GLFWwindow *window = glfwCreateWindow(800, 800, "Cool GL", nullptr, nullptr);
-    if (!window)
-    {
-        std::cerr << "Fail\n";
-        return -1;
-    }
-
-    glfwMakeContextCurrent(window);
-    glfwSetFramebufferSizeCallback(window, framebuffer_size_callback);
-
-    if (!gladLoadGLLoader((GLADloadproc)glfwGetProcAddress))
-    {
-        std::cerr << "GLAD init failed\n";
-        return -1;
-    }
-
-    glEnable(GL_DEPTH_TEST);
-
-    Mesh mesh = ModelLoader::loadFirstMeshFromFile("resources/cat/cat.fbx");
-
-    Shader shader(vertexShaderSrc, fragmentShaderSrc);
-    shader.use();
-
-    glm::vec3 lightPos = glm::vec3(0.0f, 0.0f, 10000.0f);
-    glm::vec3 lightColor = glm::vec3(1.0f, 1.0f, 1.0f);
-    shader.setVec3("uLightPos", lightPos);
-    shader.setVec3("uLightColor", lightColor);
-
-    glm::mat4 model = glm::mat4(1.0f);
-    glm::mat4 view = glm::translate(glm::mat4(1.0f), glm::vec3(0.0f, 0.0f, -5.0f));
-    glm::mat4 projection = glm::perspective(glm::radians(45.0f), 800.0f / 800.0f, 0.1f, 100.0f);
-
-    while (!glfwWindowShouldClose(window))
-    {
-        glClearColor(0.1f, 0.2f, 0.3f, 1.0f);
-        glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-        float t = glfwGetTime();
-        model = glm::rotate(glm::mat4(1.0f), t, glm::vec3(0.0f, 1.0f, 0.0f));
-        glm::mat4 mvp = projection * view * model;
-        shader.setMat4("uMVP", mvp);
-        mesh.bind();
-        mesh.draw();
-
-        glfwSwapBuffers(window);
-        glfwPollEvents();
-    }
-
-    glfwTerminate();
+    ExperimentApp app;
+    app.run();
     return 0;
 }
