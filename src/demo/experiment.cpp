@@ -47,6 +47,7 @@ public:
         GameObject& cat = scene_.CreateObject();
         auto* transform = cat.AddComponent<Transform>();
         transform->position = glm::vec3(0.0f, 0.0f, 0.0f);
+        transform->rotation_euler = glm::vec3(-90.0f, 0.0f, 0.0f);
         cat_transform_ = transform;
 
         Mesh mesh = ModelLoader::LoadFirstMeshFromFile("resources/cat/cat.fbx");
@@ -60,10 +61,6 @@ public:
 protected:
     void OnUpdate(float timeSeconds) override
     {
-        if (cat_transform_)
-        {
-            cat_transform_->rotation_euler.y = timeSeconds * catRotationSpeed_;
-        }
         scene_.Update(timeSeconds);
     }
 
