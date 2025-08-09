@@ -9,6 +9,7 @@
 #include "component.h"
 
 class Renderer;
+class Scene;
 
 class GameObject
 {
@@ -61,9 +62,14 @@ public:
     void Update(float time_seconds);
     void Render(Renderer& renderer, const glm::mat4& projection, const glm::mat4& view);
 
+    // Scene access
+    void SetScene(Scene* scene) { scene_ = scene; }
+    Scene* SceneContext() const { return scene_; }
+
 private:
     std::vector<std::unique_ptr<Component>> components_;
     std::unordered_map<std::type_index, Component*> component_cache_;
+    Scene* scene_ = nullptr;
 };
 
 

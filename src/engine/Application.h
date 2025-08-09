@@ -18,7 +18,7 @@ public:
 
 protected:
     virtual void OnUpdate(float time_seconds) = 0;
-    virtual void OnRender(const glm::mat4& projection, const glm::mat4& view) = 0;
+    virtual void OnRender() = 0;
 
 protected:
     std::unique_ptr<Window> window_;

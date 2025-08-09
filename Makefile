@@ -43,7 +43,7 @@ $(TARGETS): configure
 # Build and run a specific target, e.g. `make run-experiment`
 run-%: %
 	@echo "🚀 Running target: $*..."
-	@cmake -E chdir . $(BUILD_DIR)/$(CONFIG)/$*$(EXE_EXT) || cmake -E chdir . $(BUILD_DIR)/$*$(EXE_EXT)
+	@cmake -E chdir . $(BUILD_DIR)/$(CONFIG)/$*$(EXE_EXT)
 
 # List available targets
 list:

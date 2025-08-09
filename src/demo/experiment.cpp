@@ -8,6 +8,7 @@
 #include "engine/game_object.h"
 #include "engine/transform.h"
 #include "engine/mesh_renderer.h"
+#include "engine/camera.h"
 
 static const char *vertexShaderSrc = R"glsl(
     #version 410 core
@@ -56,6 +57,15 @@ public:
         renderer->light_pos = glm::vec3(0.0f, 0.0f, 10000.0f);
         renderer->light_color = glm::vec3(1.0f, 1.0f, 1.0f);
 
+        // Create camera object (must exist to render)
+        GameObject& camObj = scene_.CreateObject();
+        auto* camTransform = camObj.AddComponent<Transform>();
+        camTransform->position = glm::vec3(0.0f, 1.49f, 3.26f);
+        // camTransform->position = glm::vec3(0.0f, 0.0f, 3.26f);
+        auto* camera = camObj.AddComponent<Camera>();
+        camera->aspect_ratio = 800.0f / 800.0f; // initial aspect; could be updated on resize
+        camera->field_of_view_degrees = 60.0f;
+        camera_ = camera;
     }
 
 protected:
@@ -64,17 +74,18 @@ protected:
         scene_.Update(timeSeconds);
     }
 
-    void OnRender(const glm::mat4& projection, const glm::mat4& view) override
+    void OnRender() override
     {
         static Renderer renderer;
         renderer.BeginFrame(0.1f, 0.2f, 0.3f, 1.0f);
-        scene_.Render(renderer, projection, view);
+        scene_.Render(renderer);
     }
 
 private:
     Scene scene_{};
     Transform* cat_transform_ = nullptr;
     float catRotationSpeed_ = 1.0f;
+    Camera* camera_ = nullptr;
 };
 
 int main()
