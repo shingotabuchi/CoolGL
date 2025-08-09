@@ -62,7 +62,7 @@ set(COMMON_LIBS
 # ———————————————————————
 # 4) engine library
 # ———————————————————————
-file(GLOB ENGINE_SOURCES
+file(GLOB ENGINE_SOURCES CONFIGURE_DEPENDS
   ${PROJECT_SOURCE_DIR}/src/engine/*.cpp
 )
 add_library(engine STATIC ${ENGINE_SOURCES})

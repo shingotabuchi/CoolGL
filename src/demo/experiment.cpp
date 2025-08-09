@@ -4,6 +4,11 @@
 #include "engine/Renderer.h"
 #include "engine/ModelLoader.h"
 #include "engine/Shader.h"
+#include "engine/Scene.h"
+#include "engine/GameObject.h"
+#include "engine/Transform.h"
+#include "engine/MeshRenderer.h"
+#include "engine/Rotator.h"
 
 static const char *vertexShaderSrc = R"glsl(
     #version 410 core
@@ -39,32 +44,35 @@ class ExperimentApp : public Application
 public:
     ExperimentApp() : Application(800, 800, "Cool GL")
     {
-        mesh_ = ModelLoader::loadFirstMeshFromFile("resources/cat/cat.fbx");
-        shader_ = Shader(vertexShaderSrc, fragmentShaderSrc);
-        lightPos_ = glm::vec3(0.0f, 0.0f, 10000.0f);
-        lightColor_ = glm::vec3(1.0f, 1.0f, 1.0f);
+        // Build scene
+        GameObject& cat = scene_.createObject();
+        auto* transform = cat.addComponent<Transform>();
+        transform->position = glm::vec3(0.0f, 0.0f, 0.0f);
+
+        Mesh mesh = ModelLoader::loadFirstMeshFromFile("resources/cat/cat.fbx");
+        Shader shader(vertexShaderSrc, fragmentShaderSrc);
+        auto* renderer = cat.addComponent<MeshRenderer>(std::move(mesh), std::move(shader));
+        renderer->lightPos = glm::vec3(0.0f, 0.0f, 10000.0f);
+        renderer->lightColor = glm::vec3(1.0f, 1.0f, 1.0f);
+
+        cat.addComponent<Rotator>()->speedRadiansPerSec = 1.0f;
     }
 
 protected:
     void onUpdate(float timeSeconds) override
     {
-        model_ = glm::rotate(glm::mat4(1.0f), timeSeconds, glm::vec3(0.0f, 1.0f, 0.0f));
+        scene_.update(timeSeconds);
     }
 
     void onRender(const glm::mat4& projection, const glm::mat4& view) override
     {
         static Renderer renderer;
         renderer.beginFrame(0.1f, 0.2f, 0.3f, 1.0f);
-        glm::mat4 mvp = projection * view * model_;
-        renderer.drawMesh(mesh_, shader_, mvp, lightPos_, lightColor_);
+        scene_.render(renderer, projection, view);
     }
 
 private:
-    Mesh mesh_{};
-    Shader shader_{};
-    glm::mat4 model_{1.0f};
-    glm::vec3 lightPos_{};
-    glm::vec3 lightColor_{};
+    Scene scene_{};
 };
 
 int main()
