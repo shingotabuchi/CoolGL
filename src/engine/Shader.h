@@ -8,7 +8,7 @@ class Shader
 {
 public:
     Shader() = default;
-    Shader(const char* vertexSource, const char* fragmentSource);
+    Shader(const char* vertex_source, const char* fragment_source);
 
     Shader(const Shader&) = delete;
     Shader& operator=(const Shader&) = delete;
@@ -19,18 +19,17 @@ public:
     ~Shader();
 
     void use() const;
-    GLuint id() const { return programId_; }
+    GLuint id() const { return program_id_; }
 
-    // Uniform helpers
-    void setMat4(const char* name, const glm::mat4& value) const;
-    void setVec3(const char* name, const glm::vec3& value) const;
+    void set_mat4(const char* name, const glm::mat4& value) const;
+    void set_vec3(const char* name, const glm::vec3& value) const;
 
 private:
     GLuint compile(GLenum type, const char* source);
-    void link(GLuint vertexShader, GLuint fragmentShader);
+    void link(GLuint vertex_shader, GLuint fragment_shader);
 
 private:
-    GLuint programId_ = 0;
+    GLuint program_id_ = 0;
 };
 
 

@@ -1,19 +1,19 @@
 #pragma once
 
-#include "Component.h"
-#include "Transform.h"
+#include "component.h"
+#include "transform.h"
 
 class Rotator : public Component
 {
 public:
     float speedRadiansPerSec = 1.0f;
 
-    void onUpdate(float timeSeconds) override
+    void OnUpdate(float timeSeconds) override
     {
-        Transform* t = owner() ? owner()->getComponent<Transform>() : nullptr;
+        Transform* t = Owner() ? Owner()->GetComponent<Transform>() : nullptr;
         if (t)
         {
-            t->rotationEuler.y = timeSeconds * speedRadiansPerSec;
+            t->rotation_euler.y = timeSeconds * speedRadiansPerSec;
         }
     }
 };

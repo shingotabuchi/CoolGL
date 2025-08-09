@@ -1,7 +1,7 @@
-#include "Scene.h"
-#include "GameObject.h"
+#include "scene.h"
+#include "game_object.h"
 
-GameObject& Scene::createObject()
+GameObject& Scene::CreateObject()
 {
     auto obj = std::make_unique<GameObject>();
     GameObject& ref = *obj;
@@ -9,19 +9,19 @@ GameObject& Scene::createObject()
     return ref;
 }
 
-void Scene::update(float timeSeconds)
+void Scene::Update(float time_seconds)
 {
     for (auto& obj : objects_)
     {
-        obj->update(timeSeconds);
+        obj->Update(time_seconds);
     }
 }
 
-void Scene::render(Renderer& renderer, const glm::mat4& projection, const glm::mat4& view)
+void Scene::Render(Renderer& renderer, const glm::mat4& projection, const glm::mat4& view)
 {
     for (auto& obj : objects_)
     {
-        obj->render(renderer, projection, view);
+        obj->Render(renderer, projection, view);
     }
 }
 

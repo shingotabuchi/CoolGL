@@ -12,9 +12,9 @@ class Scene
 public:
     Scene() = default;
 
-    GameObject& createObject();
-    void update(float timeSeconds);
-    void render(Renderer& renderer, const glm::mat4& projection, const glm::mat4& view);
+    GameObject& CreateObject();
+    void Update(float time_seconds);
+    void Render(Renderer& renderer, const glm::mat4& projection, const glm::mat4& view);
 
 private:
     std::vector<std::unique_ptr<GameObject>> objects_;

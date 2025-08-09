@@ -1,10 +1,10 @@
-#include "ModelLoader.h"
+#include "model_loader.h"
 
 #include <assimp/Importer.hpp>
 #include <assimp/postprocess.h>
 #include <stdexcept>
 
-Mesh ModelLoader::loadFirstMeshFromFile(const std::string& path)
+Mesh ModelLoader::LoadFirstMeshFromFile(const std::string& path)
 {
     Assimp::Importer importer;
     const aiScene* scene = importer.ReadFile(path,
@@ -14,10 +14,10 @@ Mesh ModelLoader::loadFirstMeshFromFile(const std::string& path)
         throw std::runtime_error("Failed to load mesh from: " + path);
     }
     aiMesh* mesh = scene->mMeshes[0];
-    return fromAiMesh(mesh);
+    return FromAiMesh(mesh);
 }
 
-Mesh ModelLoader::fromAiMesh(aiMesh* mesh)
+Mesh ModelLoader::FromAiMesh(aiMesh* mesh)
 {
     std::vector<MeshVertex> vertices;
     std::vector<unsigned int> indices;

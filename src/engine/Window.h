@@ -12,20 +12,20 @@ public:
     Window(const Window&) = delete;
     Window& operator=(const Window&) = delete;
 
-    bool shouldClose() const;
-    void swapBuffers() const;
-    void pollEvents() const;
+    bool ShouldClose() const;
+    void SwapBuffers() const;
+    void PollEvents() const;
 
-    GLFWwindow* handle() const { return glfwWindow_; }
+    GLFWwindow* Handle() const { return glfw_window_; }
 
-    int width() const { return width_; }
-    int height() const { return height_; }
-
-private:
-    static void framebufferSizeCallback(GLFWwindow* window, int width, int height);
+    int Width() const { return width_; }
+    int Height() const { return height_; }
 
 private:
-    GLFWwindow* glfwWindow_ = nullptr;
+    static void FramebufferSizeCallback(GLFWwindow* window, int width, int height);
+
+private:
+    GLFWwindow* glfw_window_ = nullptr;
     int width_ = 0;
     int height_ = 0;
 };

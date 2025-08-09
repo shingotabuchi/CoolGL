@@ -1,4 +1,4 @@
-#include "Window.h"
+#include "window.h"
 
 #define GLFW_INCLUDE_NONE
 #include <glad/glad.h>
@@ -19,20 +19,20 @@ Window::Window(int width, int height, const char* title)
     glfwWindowHint(GLFW_OPENGL_FORWARD_COMPAT, GL_TRUE);
 #endif
 
-    glfwWindow_ = glfwCreateWindow(width, height, title, nullptr, nullptr);
-    if (!glfwWindow_)
+    glfw_window_ = glfwCreateWindow(width, height, title, nullptr, nullptr);
+    if (!glfw_window_)
     {
         glfwTerminate();
         throw std::runtime_error("Failed to create window");
     }
 
-    glfwMakeContextCurrent(glfwWindow_);
-    glfwSetFramebufferSizeCallback(glfwWindow_, framebufferSizeCallback);
+    glfwMakeContextCurrent(glfw_window_);
+    glfwSetFramebufferSizeCallback(glfw_window_, FramebufferSizeCallback);
 
     if (!gladLoadGLLoader((GLADloadproc)glfwGetProcAddress))
     {
-        glfwDestroyWindow(glfwWindow_);
-        glfwWindow_ = nullptr;
+        glfwDestroyWindow(glfw_window_);
+        glfw_window_ = nullptr;
         glfwTerminate();
         throw std::runtime_error("Failed to initialize GLAD");
     }
@@ -42,30 +42,30 @@ Window::Window(int width, int height, const char* title)
 
 Window::~Window()
 {
-    if (glfwWindow_)
+    if (glfw_window_)
     {
-        glfwDestroyWindow(glfwWindow_);
-        glfwWindow_ = nullptr;
+        glfwDestroyWindow(glfw_window_);
+        glfw_window_ = nullptr;
     }
     glfwTerminate();
 }
 
-bool Window::shouldClose() const
+bool Window::ShouldClose() const
 {
-    return glfwWindowShouldClose(glfwWindow_);
+    return glfwWindowShouldClose(glfw_window_);
 }
 
-void Window::swapBuffers() const
+void Window::SwapBuffers() const
 {
-    glfwSwapBuffers(glfwWindow_);
+    glfwSwapBuffers(glfw_window_);
 }
 
-void Window::pollEvents() const
+void Window::PollEvents() const
 {
     glfwPollEvents();
 }
 
-void Window::framebufferSizeCallback(GLFWwindow* /*window*/, int width, int height)
+void Window::FramebufferSizeCallback(GLFWwindow* /*window*/, int width, int height)
 {
     glViewport(0, 0, width, height);
 }

@@ -10,14 +10,14 @@ class Component
 public:
     virtual ~Component() = default;
 
-    void setOwner(GameObject* owner) { owner_ = owner; }
-    GameObject* owner() const { return owner_; }
+    void SetOwner(GameObject* owner) { owner_ = owner; }
+    GameObject* Owner() const { return owner_; }
 
-    virtual void onAttach() {}
-    virtual void onDetach() {}
-    virtual void onStart() {}
-    virtual void onUpdate(float timeSeconds) {}
-    virtual void onRender(Renderer& renderer, const glm::mat4& projection, const glm::mat4& view) {}
+    virtual void OnAttach() {}
+    virtual void OnDetach() {}
+    virtual void OnStart() {}
+    virtual void OnUpdate(float time_seconds) {}
+    virtual void OnRender(Renderer& renderer, const glm::mat4& projection, const glm::mat4& view) {}
 
 protected:
     GameObject* owner_ = nullptr;

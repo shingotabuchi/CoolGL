@@ -1,15 +1,15 @@
-#include "Mesh.h"
+#include "mesh.h"
 
 Mesh::Mesh(const std::vector<MeshVertex>& vertices, const std::vector<unsigned int>& indices)
 {
-    createBuffers(vertices, indices);
+    CreateBuffers(vertices, indices);
 }
 
 Mesh::Mesh(Mesh&& other) noexcept
-    : vao_(other.vao_), vbo_(other.vbo_), ebo_(other.ebo_), indexCount_(other.indexCount_)
+    : vao_(other.vao_), vbo_(other.vbo_), ebo_(other.ebo_), index_count_(other.index_count_)
 {
     other.vao_ = other.vbo_ = other.ebo_ = 0;
-    other.indexCount_ = 0;
+    other.index_count_ = 0;
 }
 
 Mesh& Mesh::operator=(Mesh&& other) noexcept
@@ -22,9 +22,9 @@ Mesh& Mesh::operator=(Mesh&& other) noexcept
         vao_ = other.vao_;
         vbo_ = other.vbo_;
         ebo_ = other.ebo_;
-        indexCount_ = other.indexCount_;
+        index_count_ = other.index_count_;
         other.vao_ = other.vbo_ = other.ebo_ = 0;
-        other.indexCount_ = 0;
+        other.index_count_ = 0;
     }
     return *this;
 }
@@ -36,9 +36,9 @@ Mesh::~Mesh()
     if (ebo_) glDeleteBuffers(1, &ebo_);
 }
 
-void Mesh::createBuffers(const std::vector<MeshVertex>& vertices, const std::vector<unsigned int>& indices)
+void Mesh::CreateBuffers(const std::vector<MeshVertex>& vertices, const std::vector<unsigned int>& indices)
 {
-    indexCount_ = static_cast<GLsizei>(indices.size());
+    index_count_ = static_cast<GLsizei>(indices.size());
 
     glGenVertexArrays(1, &vao_);
     glGenBuffers(1, &vbo_);
@@ -61,14 +61,14 @@ void Mesh::createBuffers(const std::vector<MeshVertex>& vertices, const std::vec
     glBindVertexArray(0);
 }
 
-void Mesh::bind() const
+void Mesh::Bind() const
 {
     glBindVertexArray(vao_);
 }
 
-void Mesh::draw() const
+void Mesh::Draw() const
 {
-    glDrawElements(GL_TRIANGLES, indexCount_, GL_UNSIGNED_INT, 0);
+    glDrawElements(GL_TRIANGLES, index_count_, GL_UNSIGNED_INT, 0);
 }
 
 

@@ -14,11 +14,11 @@ public:
     Application(const Application&) = delete;
     Application& operator=(const Application&) = delete;
 
-    void run();
+    void Run();
 
 protected:
-    virtual void onUpdate(float timeSeconds) = 0;
-    virtual void onRender(const glm::mat4& projection, const glm::mat4& view) = 0;
+    virtual void OnUpdate(float time_seconds) = 0;
+    virtual void OnRender(const glm::mat4& projection, const glm::mat4& view) = 0;
 
 protected:
     std::unique_ptr<Window> window_;

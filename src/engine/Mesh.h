@@ -22,17 +22,17 @@ public:
     Mesh& operator=(Mesh&& other) noexcept;
     ~Mesh();
 
-    void bind() const;
-    void draw() const;
+    void Bind() const;
+    void Draw() const;
 
 private:
-    void createBuffers(const std::vector<MeshVertex>& vertices, const std::vector<unsigned int>& indices);
+    void CreateBuffers(const std::vector<MeshVertex>& vertices, const std::vector<unsigned int>& indices);
 
 private:
     GLuint vao_ = 0;
     GLuint vbo_ = 0;
     GLuint ebo_ = 0;
-    GLsizei indexCount_ = 0;
+    GLsizei index_count_ = 0;
 };
 
 
