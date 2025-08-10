@@ -17,46 +17,6 @@
 #include <assimp/postprocess.h>
 #include <string>
 
-static const char *vertexShaderSrc = R"glsl(
-    #version 410 core
-    layout(location = 0) in vec3 aPos;
-    layout(location = 1) in vec3 aNormal;
-    layout(location = 2) in vec2 aUV;
-    uniform mat4 uMVP;
-    out vec3 vNormal;
-    out vec2 vUV;
-    void main() {
-        gl_Position = uMVP * vec4(aPos, 1.0);
-        vNormal = aNormal;
-        vUV = aUV;
-    }
-)glsl";
-
-static const char *fragmentShaderSrc = R"glsl(
-    #version 410 core
-    const int MAX_LIGHTS = 4;
-    out vec4 FragColor;
-    in vec3 vNormal;
-    in vec2 vUV;
-    uniform int uLightCount;
-    uniform vec3 uLightDirs[MAX_LIGHTS];
-    uniform vec3 uLightColors[MAX_LIGHTS];
-    uniform vec3 uAmbient; // ambient color derived from skybox
-    uniform sampler2D uAlbedo;
-    uniform int uUseTexture;
-    void main() {
-        vec3 N = normalize(vNormal);
-        vec3 accum = uAmbient;
-        for (int i = 0; i < uLightCount; ++i) {
-            vec3 L = normalize(uLightDirs[i]);
-            float diff = max(dot(N, L), 0.0);
-            accum += uLightColors[i] * diff;
-        }
-        vec3 baseColor = (uUseTexture != 0) ? texture(uAlbedo, vUV).rgb : vec3(1.0);
-        FragColor = vec4(baseColor * accum, 1.0);
-    }
-)glsl";
-
 class ExperimentApp : public Application
 {
 public:
@@ -71,11 +31,14 @@ public:
         transform->rotation_euler = glm::vec3(-90.0f, 0.0f, 0.0f);
         cat_transform_ = transform;
         Mesh mesh = ModelLoader::LoadFirstMeshFromFile("resources/cat/cat.fbx");
-        Shader shader(vertexShaderSrc, fragmentShaderSrc);
-        auto* renderer = cat.AddComponent<MeshRenderer>(std::move(mesh), std::move(shader));
+        auto sharedLitShader = std::make_shared<Shader>(Shader::FromFiles("src/engine/shaders/lit.vert", "src/engine/shaders/lit.frag"));
+        auto meshPtrCat = std::make_shared<Mesh>(std::move(mesh));
+        auto* renderer = cat.AddComponent<MeshRenderer>(meshPtrCat, sharedLitShader);
         auto tex = std::make_shared<Texture>();
         TextureLoader::LoadTexture2DFromFile("resources/cat/cattex.png", false, *tex);
         renderer->diffuse_texture = std::move(tex);
+        renderer->color = glm::vec3(1.0f, 1.0f, 1.0f);
+        renderer->smoothness = 0.6f;
 
         // Create cat clone
         GameObject& catClone = scene_.Instantiate(cat);
@@ -84,7 +47,7 @@ public:
 
         // Create station 
         std::vector<Mesh> stationMeshes = ModelLoader::LoadAllMeshesFromFile("resources/station/station.fbx", true);
-        auto sharedStationShader = std::make_shared<Shader>(vertexShaderSrc, fragmentShaderSrc);
+        auto sharedStationShader = std::make_shared<Shader>(Shader::FromFiles("src/engine/shaders/lit.vert", "src/engine/shaders/lit.frag"));
         for (auto& m : stationMeshes)
         {
             GameObject& station_part = scene_.CreateObject();
@@ -93,7 +56,9 @@ public:
             transform->rotation_euler = glm::vec3(0.0f, -90.0f, 0.0f);
             transform->scale *= 0.01f;
             auto meshPtr = std::make_shared<Mesh>(std::move(m));
-            station_part.AddComponent<MeshRenderer>(meshPtr, sharedStationShader);
+            auto* mr = station_part.AddComponent<MeshRenderer>(meshPtr, sharedStationShader);
+            mr->color = glm::vec3(0.95f, 0.95f, 0.95f);
+            mr->smoothness = 0.4f;
         }
 
         // Create camera object (must exist to render)

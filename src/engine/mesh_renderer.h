@@ -36,11 +36,17 @@ public:
     // ambient used is scene.ambient_color * material_ambient_multiplier.
     glm::vec3 material_ambient_multiplier{1.0f, 1.0f, 1.0f};
 
+    // Simple material controls for the lit shader
+    glm::vec3 color{1.0f, 1.0f, 1.0f};
+    float smoothness{0.5f};
+
     std::unique_ptr<Component> Clone() const override
     {
         auto copy = std::make_unique<MeshRenderer>(mesh_, shader_);
         copy->diffuse_texture = diffuse_texture;
         copy->material_ambient_multiplier = material_ambient_multiplier;
+        copy->color = color;
+        copy->smoothness = smoothness;
         copy->light_color = light_color;
         copy->render_mode = render_mode;
         return copy;

@@ -186,6 +186,19 @@ void MeshRenderer::OnRender(Renderer& renderer, const glm::mat4& projection, con
     }
     else
     {
+        // Set material uniforms expected by the lit shader
+        shader_->use();
+        shader_->set_vec3("uColor", color);
+        shader_->set_float("uSmoothness", smoothness);
+
+        // Approximate a single view direction per object in object space
+        const glm::mat4 invView = glm::inverse(view);
+        const glm::vec3 cameraWorldPos = glm::vec3(invView * glm::vec4(0.0f, 0.0f, 0.0f, 1.0f));
+        const glm::vec3 objectWorldPos = glm::vec3(model * glm::vec4(0.0f, 0.0f, 0.0f, 1.0f));
+        const glm::vec3 worldViewDir = glm::normalize(cameraWorldPos - objectWorldPos);
+        const glm::vec3 objectViewDir = glm::normalize(glm::vec3(invModel * glm::vec4(worldViewDir, 0.0f)));
+        shader_->set_vec3("uViewDir", objectViewDir);
+
         renderer.DrawMesh(*mesh_, *shader_, mvp, lightCount, lightDirs, lightColors);
     }
 }
