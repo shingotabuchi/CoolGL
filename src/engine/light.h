@@ -23,6 +23,14 @@ public:
     void OnAttach() override;
     void OnDetach() override;
 
+    std::unique_ptr<Component> Clone() const override
+    {
+        auto copy = std::make_unique<Light>();
+        copy->color = color;
+        copy->intensity = intensity;
+        return copy;
+    }
+
 private:
     mutable Transform* cached_transform_ = nullptr;
 };

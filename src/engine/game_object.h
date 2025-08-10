@@ -59,12 +59,30 @@ public:
         return nullptr;
     }
 
+    template<typename T>
+    const T* GetComponent() const
+    {
+        // Note: const overload does not populate the cache to preserve constness
+        for (const auto& c : components_)
+        {
+            if (auto casted = dynamic_cast<const T*>(c.get()))
+            {
+                return casted;
+            }
+        }
+        return nullptr;
+    }
+
     void Update(float time_seconds);
     void Render(Renderer& renderer, const glm::mat4& projection, const glm::mat4& view);
 
     // Scene access
     void SetScene(Scene* scene) { scene_ = scene; }
     Scene* SceneContext() const { return scene_; }
+
+    // Internal helpers used by cloning logic
+    void AddExistingComponent(std::unique_ptr<Component> comp);
+    void CloneComponentsTo(GameObject& target) const;
 
 private:
     std::vector<std::unique_ptr<Component>> components_;

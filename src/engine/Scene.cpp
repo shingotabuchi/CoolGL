@@ -3,6 +3,7 @@
 #include "camera.h"
 #include "light.h"
 #include "renderer.h"
+#include "transform.h"
 #include "texture_loader.h"
 
 #include <SOIL2.h>
@@ -14,6 +15,13 @@ GameObject& Scene::CreateObject()
     ref.SetScene(this);
     objects_.push_back(std::move(obj));
     return ref;
+}
+
+GameObject& Scene::Instantiate(const GameObject& original)
+{
+    GameObject& clone = CreateObject();
+    original.CloneComponentsTo(clone);
+    return clone;
 }
 
 void Scene::Update(float time_seconds)
@@ -39,11 +47,11 @@ void Scene::Render(Renderer& renderer)
     // Clear using sky color so sky acts as background
     renderer.BeginFrame(sky_clear_color_.r, sky_clear_color_.g, sky_clear_color_.b, 1.0f);
 
-    // Render skybox first (depth writes off, depth func LEQUAL)
-    if (sky_texture_ != 0)
-    {
-        RenderSky(projection, view);
-    }
+    // // Render skybox first (depth writes off, depth func LEQUAL)
+    // if (sky_texture_ != 0)
+    // {
+    //     RenderSky(projection, view);
+    // }
 
     for (auto& obj : objects_)
     {
@@ -74,7 +82,6 @@ bool Scene::SetSkyFromEquirect(const std::string& path)
         return false;
     }
 
-    // Compute two averages: full image for ambient, and upper half for sky clear color
     const int stride = channels; // 3 or 4
     auto accumRange = [&](int x0,int y0,int x1,int y1)->glm::vec3{
         double r=0,g=0,b=0; int count=0;
@@ -109,16 +116,13 @@ bool Scene::SetSkyFromEquirect(const std::string& path)
     GLenum fmt = (channels == 4) ? GL_RGBA : (channels == 1 ? GL_RED : GL_RGB);
     glPixelStorei(GL_UNPACK_ALIGNMENT, 1);
     glTexImage2D(GL_TEXTURE_2D, 0, fmt, w, h, 0, fmt, GL_UNSIGNED_BYTE, data);
-    // no mipmaps for sky to avoid seams
 
-    // now safe to free image data
     SOIL_free_image_data(data);
 
     EnsureSkyMeshAndShader();
     return true;
 }
 
-// Build cube buffers and sky shader if not ready
 void Scene::EnsureSkyMeshAndShader()
 {
     if (sky_vao_ == 0)

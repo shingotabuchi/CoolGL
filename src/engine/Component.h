@@ -1,6 +1,7 @@
 #pragma once
 
 #include <glm/glm.hpp>
+#include <memory>
 
 class GameObject;
 class Renderer;
@@ -22,6 +23,10 @@ public:
     virtual void OnStart() {}
     virtual void OnUpdate(float time_seconds) {}
     virtual void OnRender(Renderer& renderer, const glm::mat4& projection, const glm::mat4& view) {}
+
+    // Polymorphic clone used by Scene::Instantiate to duplicate components
+    // Default returns nullptr (component not cloneable); override in derived classes
+    virtual std::unique_ptr<Component> Clone() const { return nullptr; }
 
 protected:
     GameObject* owner_ = nullptr;

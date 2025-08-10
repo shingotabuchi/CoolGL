@@ -50,24 +50,24 @@ void MeshRenderer::OnRender(Renderer& renderer, const glm::mat4& projection, con
     {
         glActiveTexture(GL_TEXTURE0);
         glBindTexture(GL_TEXTURE_2D, diffuse_texture);
-        shader_.use();
-        shader_.set_int("uAlbedo", 0);
-        shader_.set_int("uUseTexture", 1);
+        shader_->use();
+        shader_->set_int("uAlbedo", 0);
+        shader_->set_int("uUseTexture", 1);
     }
     else
     {
-        shader_.use();
-        shader_.set_int("uUseTexture", 0);
+        shader_->use();
+        shader_->set_int("uUseTexture", 0);
     }
     // Set ambient color from Scene if available
     if (Owner() && Owner()->SceneContext())
     {
-        shader_.use();
+        shader_->use();
         const glm::vec3 ambient = Owner()->SceneContext()->GetAmbientColor();
-        shader_.set_vec3("uAmbient", ambient * material_ambient_multiplier);
+        shader_->set_vec3("uAmbient", ambient * material_ambient_multiplier);
     }
 
-    renderer.DrawMesh(mesh_, shader_, mvp, lightCount, lightDirs, lightColors);
+    renderer.DrawMesh(*mesh_, *shader_, mvp, lightCount, lightDirs, lightColors);
 }
 
 

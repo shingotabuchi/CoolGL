@@ -60,18 +60,16 @@ public:
     ExperimentApp() : Application(800, 800, "Cool GL")
     {
         // Build scene
+
+        // Create cat object
         GameObject& cat = scene_.CreateObject();
         auto* transform = cat.AddComponent<Transform>();
         transform->position = glm::vec3(0.0f, 0.0f, 0.0f);
         transform->rotation_euler = glm::vec3(-90.0f, 0.0f, 0.0f);
         cat_transform_ = transform;
-
         Mesh mesh = ModelLoader::LoadFirstMeshFromFile("resources/cat/cat.fbx");
         Shader shader(vertexShaderSrc, fragmentShaderSrc);
         auto* renderer = cat.AddComponent<MeshRenderer>(std::move(mesh), std::move(shader));
-        renderer->light_color = glm::vec3(1.0f, 1.0f, 1.0f); // fallback if no Light exists
-
-        // Load cat diffuse texture and assign to renderer
         renderer->diffuse_texture = TextureLoader::LoadTexture2DFromFile("resources/cat/cattex.png", false);
 
         // Create camera object (must exist to render)

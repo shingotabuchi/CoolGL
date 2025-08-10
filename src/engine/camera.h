@@ -22,6 +22,16 @@ public:
     void OnAttach() override;
     void OnDetach() override;
 
+    std::unique_ptr<Component> Clone() const override
+    {
+        auto copy = std::make_unique<Camera>();
+        copy->field_of_view_degrees = field_of_view_degrees;
+        copy->near_clip = near_clip;
+        copy->far_clip = far_clip;
+        copy->aspect_ratio = aspect_ratio;
+        return copy;
+    }
+
 private:
     mutable Transform* cached_transform_ = nullptr;
 };

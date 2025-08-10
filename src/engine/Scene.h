@@ -18,6 +18,9 @@ public:
     Scene() = default;
 
     GameObject& CreateObject();
+    // Duplicate a GameObject with supported components (Transform, Camera, Light)
+    // Note: MeshRenderer is not duplicated due to GPU resource ownership; attach a new one manually.
+    GameObject& Instantiate(const GameObject& original);
     void Update(float time_seconds);
     void Render(Renderer& renderer);
 
