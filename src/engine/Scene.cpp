@@ -5,6 +5,7 @@
 #include "renderer.h"
 #include "transform.h"
 #include "texture_loader.h"
+#include "texture.h"
 
 #include <SOIL2.h>
 
@@ -48,7 +49,7 @@ void Scene::Render(Renderer& renderer)
     renderer.BeginFrame(clear_color_.r, clear_color_.g, clear_color_.b, 1.0f);
 
     // Render skybox first (depth writes off, depth func LEQUAL)
-    if (sky_texture_ != 0)
+    if (sky_texture_.is_valid())
     {
         RenderSky(projection, view);
     }
@@ -61,62 +62,15 @@ void Scene::Render(Renderer& renderer)
 
 bool Scene::SetSkyFromEquirect(const std::string& path)
 {
-    int w=0,h=0,channels=0;
-    unsigned char* data = nullptr;
-    // Try a few common relative roots so running from build/Debug works
-    const char* prefixes[] = {"", "../", "../../", "../../../"};
-    std::string resolved;
-    for (const char* p : prefixes)
+    // Load GL texture
+    TextureLoader::LoadTexture2DFromFile(path, false, sky_texture_);
+
+    // Compute average color for ambient
+    glm::vec3 avg;
+    if (Texture::ComputeAverageColorFromFile(path, avg))
     {
-        std::string candidate = std::string(p) + path;
-        data = SOIL_load_image(candidate.c_str(), &w, &h, &channels, SOIL_LOAD_AUTO);
-        if (data)
-        {
-            resolved = candidate;
-            break;
-        }
+        ambient_color_ = avg * 0.8f;
     }
-    if (!data || w<=0 || h<=0)
-    {
-        if (data) SOIL_free_image_data(data);
-        return false;
-    }
-
-    const int stride = channels; // 3 or 4
-    auto accumRange = [&](int x0,int y0,int x1,int y1)->glm::vec3{
-        double r=0,g=0,b=0; int count=0;
-        for(int y=y0;y<y1;++y){
-            const unsigned char* row = data + (size_t)y*w*stride;
-            for(int x=x0;x<x1;++x){
-                const unsigned char* px = row + (size_t)x*stride;
-                r += px[0];
-                if (stride>=3){ g += px[1]; b += px[2]; } else { g += px[0]; b += px[0]; }
-                ++count;
-            }
-        }
-        double inv = 1.0 / (255.0 * (double)count);
-        return glm::vec3((float)(r*inv),(float)(g*inv),(float)(b*inv));
-    };
-
-    glm::vec3 avg_all = accumRange(0,0,w,h);
-
-    ambient_color_ = avg_all * 0.8f;
-
-    // Create GL texture
-    if (sky_texture_ == 0)
-    {
-        glGenTextures(1, &sky_texture_);
-    }
-    glBindTexture(GL_TEXTURE_2D, sky_texture_);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-    GLenum fmt = (channels == 4) ? GL_RGBA : (channels == 1 ? GL_RED : GL_RGB);
-    glPixelStorei(GL_UNPACK_ALIGNMENT, 1);
-    glTexImage2D(GL_TEXTURE_2D, 0, fmt, w, h, 0, fmt, GL_UNSIGNED_BYTE, data);
-
-    SOIL_free_image_data(data);
 
     EnsureSkyMeshAndShader();
     return true;
@@ -191,7 +145,7 @@ void Scene::EnsureSkyMeshAndShader()
 
 void Scene::RenderSky(const glm::mat4& projection, const glm::mat4& view)
 {
-    if (sky_texture_ == 0) return;
+    if (!sky_texture_.is_valid()) return;
     // remove translation from view
     glm::mat4 v = view;
     v[3][0] = v[3][1] = v[3][2] = 0.0f;
@@ -213,7 +167,7 @@ void Scene::RenderSky(const glm::mat4& projection, const glm::mat4& view)
     sky_shader_.set_mat4("uProj", projection);
     sky_shader_.set_mat4("uViewNoT", v);
     glActiveTexture(GL_TEXTURE0);
-    glBindTexture(GL_TEXTURE_2D, sky_texture_);
+    glBindTexture(GL_TEXTURE_2D, sky_texture_.id());
     sky_shader_.set_int("uSky", 0);
     glBindVertexArray(sky_vao_);
     // Ensure index buffer is bound (VAO captures it, but be explicit)

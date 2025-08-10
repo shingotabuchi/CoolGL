@@ -1,6 +1,8 @@
 #pragma once
 
 #include <glad/glad.h>
+#include <glm/glm.hpp>
+#include <string>
 
 // Lightweight RAII wrapper around an OpenGL texture object name.
 // Non-copyable, moveable. Automatically deletes the GL texture on destruction.
@@ -64,6 +66,11 @@ public:
         glActiveTexture(GL_TEXTURE0 + unit);
         glBindTexture(target, id_);
     }
+
+    // Loads image from disk and computes its average color in linear [0..1].
+    // Returns false if the image cannot be loaded.
+    static bool ComputeAverageColorFromFile(const std::string& path,
+                                            glm::vec3& out_average_rgb);
 
 private:
     GLuint id_ = 0;

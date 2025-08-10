@@ -4,7 +4,7 @@
 #include <stdexcept>
 #include "engine/texture.h"
 
-void TextureLoader::loadTexture2DFromFile(const std::string& path, bool generate_mipmaps, GLuint& tex_id)
+void TextureLoader::LoadTexture2DFromFile(const std::string& path, bool generate_mipmaps, GLuint& tex_id)
 {
     int width = 0, height = 0, channels = 0;
     unsigned char* data = SOIL_load_image(path.c_str(), &width, &height, &channels, SOIL_LOAD_AUTO);
@@ -45,8 +45,18 @@ void TextureLoader::loadTexture2DFromFile(const std::string& path, bool generate
 void TextureLoader::LoadTexture2DFromFile(const std::string& path, bool generate_mipmaps, Texture& texture)
 {
     GLuint id = texture.id();
-    loadTexture2DFromFile(path, generate_mipmaps, id);
+    LoadTexture2DFromFile(path, generate_mipmaps, id);
     texture.reset(id);
+}
+
+unsigned char* TextureLoader::LoadImagePixels(const std::string& path,
+                                              int& out_width,
+                                              int& out_height,
+                                              int& out_channels)
+{
+    out_width = out_height = out_channels = 0;
+    unsigned char* data = SOIL_load_image(path.c_str(), &out_width, &out_height, &out_channels, SOIL_LOAD_AUTO);
+    return data;
 }
 
 
