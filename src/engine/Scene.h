@@ -6,7 +6,6 @@
 #include <string>
 #include <glad/glad.h>
 #include "shader.h"
-#include "texture.h"
 
 class GameObject;
 class Renderer;
@@ -56,16 +55,6 @@ private:
     glm::vec3 ambient_color_{0.0f, 0.0f, 0.0f};
     glm::vec3 clear_color_{0.1f, 0.2f, 0.3f};
 
-    // Sky rendering resources (optional). Only valid if sky_texture_.is_valid().
-    Texture sky_texture_;
-    GLuint sky_vao_ = 0;
-    GLuint sky_vbo_ = 0;
-    GLuint sky_ebo_ = 0;
-    Shader sky_shader_{};
-
-    // Internal helpers
-    void RenderSky(const glm::mat4& projection, const glm::mat4& view);
-    void EnsureSkyMeshAndShader();
 };
 
 
