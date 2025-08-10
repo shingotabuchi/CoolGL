@@ -81,15 +81,15 @@ public:
         auto* cloneTransform = catClone.GetComponent<Transform>();
         cloneTransform->position = glm::vec3(1.0f, 0.0f, -2.0f);
 
-        // Create Plane
-        GameObject& plane = scene_.CreateObject();
-        auto* planeTransform = plane.AddComponent<Transform>();
-        planeTransform->position = glm::vec3(0.0f, 0.0f, 0.0f);
-        planeTransform->rotation_euler = glm::vec3(0.0f, 0.0f, 0.0f);
-        planeTransform->scale = glm::vec3(1.0f, 1.0f, 1.0f) * 10.0f;
-        Mesh planeMesh = MeshCreator::CreateUnitPlane();
-        Shader planeShader(vertexShaderSrc, fragmentShaderSrc);
-        plane.AddComponent<MeshRenderer>(std::move(planeMesh), std::move(planeShader));
+        // Create station
+        GameObject& station = scene_.CreateObject();
+        auto* stationTransform = station.AddComponent<Transform>();
+        stationTransform->position = glm::vec3(-1.827f, 0.0f, 2.6f);
+        stationTransform->rotation_euler = glm::vec3(0.0f, 0.0f, 0.0f);
+        stationTransform->scale = glm::vec3(1.0f, 1.0f, 1.0f) * 2.0f;
+        Mesh stationMesh = ModelLoader::LoadFirstMeshFromFile("resources/station/station.fbx");
+        Shader stationShader(vertexShaderSrc, fragmentShaderSrc);
+        auto* stationRenderer = station.AddComponent<MeshRenderer>(std::move(stationMesh), std::move(stationShader));
 
         // Create camera object (must exist to render)
         GameObject& camObj = scene_.CreateObject();
