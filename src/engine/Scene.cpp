@@ -6,7 +6,7 @@
 #include "transform.h"
 #include "texture_loader.h"
 #include "texture.h"
-#include "skybox_renderer.h"
+#include "mesh_renderer.h"
 
 #include <SOIL2.h>
 
@@ -48,8 +48,11 @@ void Scene::Render(Renderer& renderer)
 
     // Clear using sky color so sky acts as background
     renderer.BeginFrame(clear_color_.r, clear_color_.g, clear_color_.b, 1.0f);
-
-    // Skybox will render like any other GameObject via its own component
+    // Render skybox first (if any)
+    if (skybox_object_)
+    {
+        skybox_object_->Render(renderer, projection, view);
+    }
 
     for (auto& obj : objects_)
     {
@@ -59,9 +62,9 @@ void Scene::Render(Renderer& renderer)
 
 bool Scene::SetSkyFromEquirect(const std::string& path)
 {
-    // Load GL texture into a temporary wrapper
-    Texture sky_texture;
-    TextureLoader::LoadTexture2DFromFile(path, false, sky_texture);
+    // Load GL texture into a persistent shared Texture
+    auto sky_tex = std::make_shared<Texture>();
+    TextureLoader::LoadTexture2DFromFile(path, false, *sky_tex);
 
     // Compute average color for ambient
     glm::vec3 avg;
@@ -70,10 +73,20 @@ bool Scene::SetSkyFromEquirect(const std::string& path)
         ambient_color_ = avg * 0.8f;
     }
 
-    // Create or update a dedicated Sky object with SkyboxRenderer
-    GameObject& sky = CreateObject();
-    auto* skybox = sky.AddComponent<SkyboxRenderer>();
-    skybox->SetTexture(std::make_shared<Texture>(sky_texture.id()));
+    // Create skybox object with MeshRenderer in Skybox mode
+    if (!skybox_object_)
+    {
+        skybox_object_ = std::make_unique<GameObject>();
+        skybox_object_->SetScene(this);
+    }
+    MeshRenderer* mr = skybox_object_->GetComponent<MeshRenderer>();
+    if (!mr)
+    {
+        mr = skybox_object_->AddComponent<MeshRenderer>();
+        mr->render_mode = MeshRenderer::RenderMode::Skybox;
+        mr->SetMesh(MeshRenderer::CreateUnitCube());
+    }
+    mr->diffuse_texture = std::move(sky_tex);
     return true;
 }
 

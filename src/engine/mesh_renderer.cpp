@@ -5,9 +5,122 @@
 #include "scene.h"
 #include "light.h"
 #include <glad/glad.h>
+#include <vector>
+
+// Simple skybox shader: equirectangular 2D texture sampled by direction
+static const char* kSkyVS = R"glsl(
+    #version 410 core
+    layout(location=0) in vec3 aPos;
+    uniform mat4 uProj;
+    uniform mat4 uViewNoT;
+    out vec3 vDir;
+    void main(){
+        vec4 pos = uProj * uViewNoT * vec4(aPos,1.0);
+        gl_Position = vec4(pos.xy, pos.w, pos.w);
+        vDir = aPos;
+    }
+)glsl";
+
+static const char* kSkyFS = R"glsl(
+    #version 410 core
+    in vec3 vDir;
+    out vec4 FragColor;
+    uniform sampler2D uSky;
+    vec2 dirToEquirectUV(vec3 d){
+        d = normalize(d);
+        float phi = atan(d.z, d.x);
+        float theta = asin(clamp(d.y, -1.0, 1.0));
+        float u = 0.5 + phi / (2.0*3.14159265359);
+        float v = 0.5 - theta / 3.14159265359;
+        return vec2(u,v);
+    }
+    void main(){
+        vec2 uv = dirToEquirectUV(vDir);
+        vec3 c = texture(uSky, uv).rgb;
+        FragColor = vec4(c, 1.0);
+    }
+)glsl";
+
+static std::shared_ptr<Mesh> g_unitCube;
+std::shared_ptr<Mesh> MeshRenderer::CreateUnitCube()
+{
+    if (g_unitCube) return g_unitCube;
+    const float positions[] = {
+        -1,-1,-1,  1,-1,-1,  1, 1,-1, -1, 1,-1,
+        -1,-1, 1,  1,-1, 1,  1, 1, 1, -1, 1, 1
+    };
+    const unsigned int indices[] = {
+        0,1,2, 2,3,0,
+        4,5,6, 6,7,4,
+        4,0,3, 3,7,4,
+        1,5,6, 6,2,1,
+        4,5,1, 1,0,4,
+        3,2,6, 6,7,3
+    };
+    std::vector<MeshVertex> verts;
+    verts.reserve(8);
+    for (int i = 0; i < 8; ++i)
+    {
+        MeshVertex v{};
+        v.position = glm::vec3(positions[i*3+0], positions[i*3+1], positions[i*3+2]);
+        v.normal = glm::vec3(0,0,0);
+        v.uv = glm::vec2(0,0);
+        verts.push_back(v);
+    }
+    std::vector<unsigned int> idx(indices, indices + 36);
+    g_unitCube = std::make_shared<Mesh>(verts, idx);
+    return g_unitCube;
+}
 
 void MeshRenderer::OnRender(Renderer& renderer, const glm::mat4& projection, const glm::mat4& view)
 {
+    if (render_mode == RenderMode::Skybox)
+    {
+        const bool hasTexture = (diffuse_texture && diffuse_texture->is_valid());
+        // Build rotation-only view matrix (no translation)
+        glm::mat4 v = view;
+        v[3][0] = 0.0f; v[3][1] = 0.0f; v[3][2] = 0.0f;
+
+        // Depth state for background: disable depth test for guaranteed visibility
+        GLboolean wasDepthEnabled = glIsEnabled(GL_DEPTH_TEST);
+        glDisable(GL_DEPTH_TEST);
+        glDepthMask(GL_FALSE);
+        glDepthFunc(GL_LEQUAL);
+        // Culling: disable for robustness (mesh winding might vary)
+        GLboolean wasCullEnabled = glIsEnabled(GL_CULL_FACE);
+        GLint oldCullFace = GL_BACK;
+        if (wasCullEnabled) glGetIntegerv(GL_CULL_FACE_MODE, &oldCullFace);
+        glDisable(GL_CULL_FACE);
+
+        // Lazy init a simple skybox shader if none provided
+        if (!shader_ || shader_->id() == 0)
+        {
+            shader_ = std::make_shared<Shader>(kSkyVS, kSkyFS);
+        }
+        // Bind uniforms and texture
+        shader_->use();
+        shader_->set_mat4("uProj", projection);
+        shader_->set_mat4("uViewNoT", v);
+        if (hasTexture)
+        {
+            diffuse_texture->bind(GL_TEXTURE_2D, 0);
+            shader_->set_int("uSky", 0);
+        }
+
+        // Use unit cube mesh if none assigned
+        std::shared_ptr<Mesh> box = mesh_ ? mesh_ : CreateUnitCube();
+        box->Bind();
+        box->Draw();
+
+        // Restore depth/cull state
+        if (wasCullEnabled) { glEnable(GL_CULL_FACE); glCullFace(oldCullFace); }
+        else { glDisable(GL_CULL_FACE); }
+        glDepthFunc(GL_LESS);
+        glDepthMask(GL_TRUE);
+        if (wasDepthEnabled) glEnable(GL_DEPTH_TEST);
+        return;
+    }
+
     if (!cached_transform_ && Owner())
     {
         cached_transform_ = Owner()->GetComponent<Transform>();
@@ -45,11 +158,12 @@ void MeshRenderer::OnRender(Renderer& renderer, const glm::mat4& projection, con
         lightCount = 1;
     }
 
-    // Bind texture (if any) to texture unit 0 and set uniforms expected by textured shader
+    // Bind texture (if any) to texture unit 0 and set uniforms
     if (diffuse_texture && diffuse_texture->is_valid())
     {
         diffuse_texture->bind(GL_TEXTURE_2D, 0);
         shader_->use();
+        // For Unlit mode, only uAlbedo is used; for Lit, both are used
         shader_->set_int("uAlbedo", 0);
         shader_->set_int("uUseTexture", 1);
     }
@@ -58,15 +172,27 @@ void MeshRenderer::OnRender(Renderer& renderer, const glm::mat4& projection, con
         shader_->use();
         shader_->set_int("uUseTexture", 0);
     }
-    // Set ambient color from Scene if available
-    if (Owner() && Owner()->SceneContext())
+    // Set ambient color if Lit and Scene available
+    if (render_mode == RenderMode::Lit && Owner() && Owner()->SceneContext())
     {
         shader_->use();
         const glm::vec3 ambient = Owner()->SceneContext()->GetAmbientColor();
         shader_->set_vec3("uAmbient", ambient * material_ambient_multiplier);
     }
 
-    renderer.DrawMesh(*mesh_, *shader_, mvp, lightCount, lightDirs, lightColors);
+    if (render_mode == RenderMode::Unlit)
+    {
+        // For unlit, ignore light uniforms and just draw mesh with shader using uMVP
+        shader_->use();
+        const GLint locMVP = shader_->get_uniform_location_cached("uMVP");
+        shader_->set_mat4(locMVP, mvp);
+        mesh_->Bind();
+        mesh_->Draw();
+    }
+    else
+    {
+        renderer.DrawMesh(*mesh_, *shader_, mvp, lightCount, lightDirs, lightColors);
+    }
 }
 
 

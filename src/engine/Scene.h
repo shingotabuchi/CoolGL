@@ -6,6 +6,7 @@
 #include <string>
 #include <glad/glad.h>
 #include "shader.h"
+#include "mesh_renderer.h"
 
 class GameObject;
 class Renderer;
@@ -54,6 +55,9 @@ private:
     std::vector<std::unique_ptr<GameObject>> objects_;
     glm::vec3 ambient_color_{0.0f, 0.0f, 0.0f};
     glm::vec3 clear_color_{0.1f, 0.2f, 0.3f};
+
+    // Skybox is a dedicated GameObject with a MeshRenderer in Skybox mode
+    std::unique_ptr<GameObject> skybox_object_{};
 
 };
 

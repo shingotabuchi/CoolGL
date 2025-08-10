@@ -13,6 +13,7 @@ class MeshRenderer : public Component
 {
 public:
     MeshRenderer() = default;
+    enum class RenderMode { Lit, Unlit, Skybox };
     // Construct with owned GPU resources; stored as shared so clones can share them
     MeshRenderer(Mesh mesh, Shader shader)
         : mesh_(std::make_shared<Mesh>(std::move(mesh)))
@@ -41,8 +42,21 @@ public:
         copy->diffuse_texture = diffuse_texture;
         copy->material_ambient_multiplier = material_ambient_multiplier;
         copy->light_color = light_color;
+        copy->render_mode = render_mode;
         return copy;
     }
+
+    // Rendering mode selector (defaults to Lit)
+    RenderMode render_mode = RenderMode::Lit;
+
+    // Helpers to set resources after default construction
+    void SetMesh(std::shared_ptr<Mesh> mesh) { mesh_ = std::move(mesh); }
+    void SetShader(std::shared_ptr<Shader> shader) { shader_ = std::move(shader); }
+    std::shared_ptr<Mesh> GetMesh() const { return mesh_; }
+    std::shared_ptr<Shader> GetShader() const { return shader_; }
+
+    // Utility: create or obtain a shared unit cube mesh
+    static std::shared_ptr<Mesh> CreateUnitCube();
 
 private:
     std::shared_ptr<Mesh> mesh_{};
