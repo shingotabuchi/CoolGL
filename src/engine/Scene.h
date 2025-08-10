@@ -42,7 +42,7 @@ public:
     // Loads the image, computes average color (for ambient), and stores a clear color
     // derived from horizon average for frame clear. Returns false on failure.
     bool SetSkyFromEquirect(const std::string& path);
-    glm::vec3 GetSkyClearColor() const { return sky_clear_color_; }
+    glm::vec3 GetClearColor() const { return clear_color_; }
 
 private:
     // Important: Declare manager containers before `objects_` so they
@@ -53,7 +53,7 @@ private:
     std::vector<Light*> lights_{};
     std::vector<std::unique_ptr<GameObject>> objects_;
     glm::vec3 ambient_color_{0.0f, 0.0f, 0.0f};
-    glm::vec3 sky_clear_color_{0.1f, 0.2f, 0.3f};
+    glm::vec3 clear_color_{0.1f, 0.2f, 0.3f};
 
     // Sky rendering resources (optional). Only valid if sky_texture_ != 0.
     GLuint sky_texture_ = 0;

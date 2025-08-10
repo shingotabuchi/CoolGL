@@ -7,10 +7,10 @@ thread_local Renderer::CachedLightState Renderer::s_cachedLightState{};
 Renderer::Renderer()
 {
     glEnable(GL_DEPTH_TEST);
-    // // Enable back-face culling for fewer fragment shader invocations
-    // glEnable(GL_CULL_FACE);
-    // glCullFace(GL_BACK);
-    // glFrontFace(GL_CCW);
+    // Enable back-face culling for fewer fragment shader invocations
+    glEnable(GL_CULL_FACE);
+    glCullFace(GL_BACK);
+    glFrontFace(GL_CCW);
 }
 
 void Renderer::BeginFrame(float r, float g, float b, float a)

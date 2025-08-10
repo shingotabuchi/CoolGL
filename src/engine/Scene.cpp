@@ -45,13 +45,13 @@ void Scene::Render(Renderer& renderer)
     const glm::mat4 view = activeCamera->ViewMatrix();
 
     // Clear using sky color so sky acts as background
-    renderer.BeginFrame(sky_clear_color_.r, sky_clear_color_.g, sky_clear_color_.b, 1.0f);
+    renderer.BeginFrame(clear_color_.r, clear_color_.g, clear_color_.b, 1.0f);
 
-    // // Render skybox first (depth writes off, depth func LEQUAL)
-    // if (sky_texture_ != 0)
-    // {
-    //     RenderSky(projection, view);
-    // }
+    // Render skybox first (depth writes off, depth func LEQUAL)
+    if (sky_texture_ != 0)
+    {
+        RenderSky(projection, view);
+    }
 
     for (auto& obj : objects_)
     {
@@ -101,7 +101,6 @@ bool Scene::SetSkyFromEquirect(const std::string& path)
     glm::vec3 avg_all = accumRange(0,0,w,h);
 
     ambient_color_ = avg_all * 0.8f;
-    sky_clear_color_ = avg_all;
 
     // Create GL texture
     if (sky_texture_ == 0)
