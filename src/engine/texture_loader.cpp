@@ -3,7 +3,7 @@
 #include <SOIL2.h>
 #include <stdexcept>
 
-GLuint TextureLoader::LoadTexture2DFromFile(const std::string& path, bool generate_mipmaps)
+void TextureLoader::LoadTexture2DFromFile(const std::string& path, bool generate_mipmaps, GLuint& tex_id)
 {
     int width = 0, height = 0, channels = 0;
     unsigned char* data = SOIL_load_image(path.c_str(), &width, &height, &channels, SOIL_LOAD_AUTO);
@@ -13,7 +13,11 @@ GLuint TextureLoader::LoadTexture2DFromFile(const std::string& path, bool genera
     }
 
     GLuint tex = 0;
-    glGenTextures(1, &tex);
+    if (tex_id == 0) {
+        glGenTextures(1, &tex);
+    } else {
+        tex = tex_id;
+    }
     glBindTexture(GL_TEXTURE_2D, tex);
 
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
@@ -34,7 +38,7 @@ GLuint TextureLoader::LoadTexture2DFromFile(const std::string& path, bool genera
     }
 
     SOIL_free_image_data(data);
-    return tex;
+    tex_id = tex;
 }
 
 

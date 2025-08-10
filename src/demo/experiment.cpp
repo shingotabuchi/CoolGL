@@ -70,7 +70,7 @@ public:
         Mesh mesh = ModelLoader::LoadFirstMeshFromFile("resources/cat/cat.fbx");
         Shader shader(vertexShaderSrc, fragmentShaderSrc);
         auto* renderer = cat.AddComponent<MeshRenderer>(std::move(mesh), std::move(shader));
-        renderer->diffuse_texture = TextureLoader::LoadTexture2DFromFile("resources/cat/cattex.png", false);
+        TextureLoader::LoadTexture2DFromFile("resources/cat/cattex.png", false, renderer->diffuse_texture);
 
         // Create cat clone
         GameObject& catClone = scene_.Instantiate(cat);

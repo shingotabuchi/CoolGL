@@ -10,8 +10,8 @@ public:
     // Loads an image from disk into a GL texture (GL_TEXTURE_2D)
     // Returns texture id (non-zero). On failure, throws std::runtime_error.
     // If generate_mipmaps is true, creates mipmaps and sets MIN filter accordingly.
-    static GLuint LoadTexture2DFromFile(const std::string& path,
-                                        bool generate_mipmaps = true);
+    static void LoadTexture2DFromFile(const std::string& path,
+                                        bool generate_mipmaps , GLuint& tex_id);
 };
 
 
