@@ -31,14 +31,14 @@ public:
         transform->rotation_euler = glm::vec3(-90.0f, 0.0f, 0.0f);
         cat_transform_ = transform;
         Mesh mesh = ModelLoader::LoadFirstMeshFromFile("resources/cat/cat.fbx");
-        auto sharedLitShader = std::make_shared<Shader>(Shader::FromFiles("src/engine/shaders/lit.vert", "src/engine/shaders/lit.frag"));
         auto meshPtrCat = std::make_shared<Mesh>(std::move(mesh));
-        auto* renderer = cat.AddComponent<MeshRenderer>(meshPtrCat, sharedLitShader);
-        auto tex = std::make_shared<Texture>();
-        TextureLoader::LoadTexture2DFromFile("resources/cat/cattex.png", false, *tex);
-        renderer->diffuse_texture = std::move(tex);
-        renderer->color = glm::vec3(1.0f, 1.0f, 1.0f);
-        renderer->smoothness = 0.6f;
+        auto catMat = std::make_shared<Material>();
+        catMat->vertex_shader_path = "src/engine/shaders/lit.vert";
+        catMat->fragment_shader_path = "src/engine/shaders/lit.frag";
+        catMat->albedo_texture_path = "resources/cat/cattex.png";
+        catMat->color = glm::vec3(1.0f, 1.0f, 1.0f);
+        catMat->smoothness = 0.6f;
+        auto* renderer = cat.AddComponent<MeshRenderer>(meshPtrCat, catMat);
 
         // Create cat clone
         GameObject& catClone = scene_.Instantiate(cat);
@@ -47,7 +47,11 @@ public:
 
         // Create station 
         std::vector<Mesh> stationMeshes = ModelLoader::LoadAllMeshesFromFile("resources/station/station.fbx", true);
-        auto sharedStationShader = std::make_shared<Shader>(Shader::FromFiles("src/engine/shaders/lit.vert", "src/engine/shaders/lit.frag"));
+        auto stationMat = std::make_shared<Material>();
+        stationMat->vertex_shader_path = "src/engine/shaders/lit.vert";
+        stationMat->fragment_shader_path = "src/engine/shaders/lit.frag";
+        stationMat->color = glm::vec3(0.5f, 0.5f, 0.5f);
+        stationMat->smoothness = 0.4f;
         for (auto& m : stationMeshes)
         {
             GameObject& station_part = scene_.CreateObject();
@@ -56,9 +60,7 @@ public:
             transform->rotation_euler = glm::vec3(0.0f, -90.0f, 0.0f);
             transform->scale *= 0.01f;
             auto meshPtr = std::make_shared<Mesh>(std::move(m));
-            auto* mr = station_part.AddComponent<MeshRenderer>(meshPtr, sharedStationShader);
-            mr->color = glm::vec3(0.95f, 0.95f, 0.95f);
-            mr->smoothness = 0.4f;
+            auto* mr = station_part.AddComponent<MeshRenderer>(meshPtr, stationMat);
         }
 
         // Create camera object (must exist to render)
@@ -66,6 +68,8 @@ public:
         auto* camTransform = camObj.AddComponent<Transform>();
         camTransform->position = glm::vec3(0.0f, 4.0f, -8.0f);
         camTransform->rotation_euler = glm::vec3(7.0f, 180.0f, 0.0f);
+        // camTransform->position = glm::vec3(0.0f, 1.49f, 5.0f);
+        // camTransform->rotation_euler = glm::vec3(0.0f, 0.0f, 0.0f);
         auto* camera = camObj.AddComponent<Camera>();
         // By default, camera derives aspect from the current window/viewport
         // Set camera->sync_aspect_with_window = false to control aspect manually

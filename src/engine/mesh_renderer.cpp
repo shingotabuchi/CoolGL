@@ -153,10 +153,26 @@ void MeshRenderer::OnRender(Renderer& renderer, const glm::mat4& projection, con
         lightCount = 1;
     }
 
-    // Bind texture (if any) to texture unit 0 and set uniforms
-    if (diffuse_texture && diffuse_texture->is_valid())
+    // Resolve shader and textures from Material if present
+    if (material_)
     {
-        diffuse_texture->bind(GL_TEXTURE_2D, 0);
+        material_->EnsureResourcesLoaded();
+        if (auto matShader = material_->GetShader())
+        {
+            shader_ = matShader;
+        }
+    }
+
+    // Bind texture (if any) to texture unit 0 and set uniforms
+    std::shared_ptr<Texture> albedoTex = diffuse_texture;
+    if (material_ && material_->GetAlbedoTexture())
+    {
+        albedoTex = material_->GetAlbedoTexture();
+    }
+
+    if (albedoTex && albedoTex->is_valid())
+    {
+        albedoTex->bind(GL_TEXTURE_2D, 0);
         shader_->use();
         // For Unlit mode, only uAlbedo is used; for Lit, both are used
         shader_->set_int("uAlbedo", 0);
@@ -188,8 +204,10 @@ void MeshRenderer::OnRender(Renderer& renderer, const glm::mat4& projection, con
     {
         // Set material uniforms expected by the lit shader
         shader_->use();
-        shader_->set_vec3("uColor", color);
-        shader_->set_float("uSmoothness", smoothness);
+        const glm::vec3 colorToUse = material_ ? material_->color : color;
+        const float smoothnessToUse = material_ ? material_->smoothness : smoothness;
+        shader_->set_vec3("uColor", colorToUse);
+        shader_->set_float("uSmoothness", smoothnessToUse);
 
         // Approximate a single view direction per object in object space
         const glm::mat4 invView = glm::inverse(view);
