@@ -46,10 +46,9 @@ void MeshRenderer::OnRender(Renderer& renderer, const glm::mat4& projection, con
     }
 
     // Bind texture (if any) to texture unit 0 and set uniforms expected by textured shader
-    if (diffuse_texture != 0)
+    if (diffuse_texture && diffuse_texture->is_valid())
     {
-        glActiveTexture(GL_TEXTURE0);
-        glBindTexture(GL_TEXTURE_2D, diffuse_texture);
+        diffuse_texture->bind(GL_TEXTURE_2D, 0);
         shader_->use();
         shader_->set_int("uAlbedo", 0);
         shader_->set_int("uUseTexture", 1);

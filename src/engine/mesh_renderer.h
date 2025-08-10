@@ -3,6 +3,7 @@
 #include "component.h"
 #include "mesh.h"
 #include "shader.h"
+#include "texture.h"
 #include <glm/glm.hpp>
 #include <memory>
 
@@ -27,8 +28,8 @@ public:
     void OnRender(Renderer& renderer, const glm::mat4& projection, const glm::mat4& view) override;
     void OnAttach() override { cached_transform_ = nullptr; }
 
-    // Optional GL texture ID to bind as diffuse texture to unit 0
-    unsigned int diffuse_texture = 0;
+    // Optional texture used as diffuse/albedo. Shared so clones can share the GPU resource.
+    std::shared_ptr<Texture> diffuse_texture;
 
     // Optional per-material ambient multiplier (defaults to 1). The final
     // ambient used is scene.ambient_color * material_ambient_multiplier.

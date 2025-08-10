@@ -2,8 +2,9 @@
 
 #include <SOIL2.h>
 #include <stdexcept>
+#include "engine/texture.h"
 
-void TextureLoader::LoadTexture2DFromFile(const std::string& path, bool generate_mipmaps, GLuint& tex_id)
+void TextureLoader::loadTexture2DFromFile(const std::string& path, bool generate_mipmaps, GLuint& tex_id)
 {
     int width = 0, height = 0, channels = 0;
     unsigned char* data = SOIL_load_image(path.c_str(), &width, &height, &channels, SOIL_LOAD_AUTO);
@@ -39,6 +40,13 @@ void TextureLoader::LoadTexture2DFromFile(const std::string& path, bool generate
 
     SOIL_free_image_data(data);
     tex_id = tex;
+}
+
+void TextureLoader::LoadTexture2DFromFile(const std::string& path, bool generate_mipmaps, Texture& texture)
+{
+    GLuint id = texture.id();
+    loadTexture2DFromFile(path, generate_mipmaps, id);
+    texture.reset(id);
 }
 
 

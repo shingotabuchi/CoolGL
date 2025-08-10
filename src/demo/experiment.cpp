@@ -2,6 +2,7 @@
 #include <glm/glm.hpp>
 #include <glm/gtc/matrix_transform.hpp>
 #include "engine/texture_loader.h"
+#include "engine/texture.h"
 #include "engine/application.h"
 #include "engine/renderer.h"
 #include "engine/model_loader.h"
@@ -70,7 +71,9 @@ public:
         Mesh mesh = ModelLoader::LoadFirstMeshFromFile("resources/cat/cat.fbx");
         Shader shader(vertexShaderSrc, fragmentShaderSrc);
         auto* renderer = cat.AddComponent<MeshRenderer>(std::move(mesh), std::move(shader));
-        TextureLoader::LoadTexture2DFromFile("resources/cat/cattex.png", false, renderer->diffuse_texture);
+        auto tex = std::make_shared<Texture>();
+        TextureLoader::LoadTexture2DFromFile("resources/cat/cattex.png", false, *tex);
+        renderer->diffuse_texture = std::move(tex);
 
         // Create cat clone
         GameObject& catClone = scene_.Instantiate(cat);
