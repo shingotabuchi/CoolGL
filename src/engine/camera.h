@@ -13,7 +13,8 @@ public:
     float field_of_view_degrees = 45.0f;   // vertical FOV
     float near_clip = 0.1f;
     float far_clip = 100.0f;
-    float aspect_ratio = 1.0f;             // should be kept in sync with window size
+    float aspect_ratio = 1.0f;             // manual aspect when not syncing to window
+    bool sync_aspect_with_window = true;    // when true, derive aspect from current viewport
 
     // Matrices derived from the owning GameObject's Transform
     glm::mat4 ViewMatrix() const;
@@ -29,6 +30,7 @@ public:
         copy->near_clip = near_clip;
         copy->far_clip = far_clip;
         copy->aspect_ratio = aspect_ratio;
+        copy->sync_aspect_with_window = sync_aspect_with_window;
         return copy;
     }
 

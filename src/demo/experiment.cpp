@@ -85,7 +85,8 @@ public:
         auto* camTransform = camObj.AddComponent<Transform>();
         camTransform->position = glm::vec3(0.0f, 1.49f, 3.26f);
         auto* camera = camObj.AddComponent<Camera>();
-        camera->aspect_ratio = 800.0f / 800.0f; // initial aspect; could be updated on resize
+        // By default, camera derives aspect from the current window/viewport
+        // Set camera->sync_aspect_with_window = false to control aspect manually
         camera->field_of_view_degrees = 60.0f;
         camera_ = camera;
 

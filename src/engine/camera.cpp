@@ -2,6 +2,7 @@
 #include "game_object.h"
 #include "scene.h"
 #include "transform.h"
+#include <glad/glad.h>
 
 #include <glm/gtc/matrix_transform.hpp>
 
@@ -27,7 +28,21 @@ glm::mat4 Camera::ViewMatrix() const
 
 glm::mat4 Camera::ProjectionMatrix() const
 {
-    return glm::perspective(glm::radians(field_of_view_degrees), aspect_ratio, near_clip, far_clip);
+    float ar = aspect_ratio;
+    if (sync_aspect_with_window)
+    {
+        // Query current OpenGL viewport to derive aspect. This keeps cameras in sync with window size
+        // without tight coupling.
+        GLint vp[4] = {0, 0, 1, 1};
+        glGetIntegerv(GL_VIEWPORT, vp);
+        const float w = static_cast<float>(vp[2]);
+        const float h = static_cast<float>(vp[3]);
+        if (w > 0.0f && h > 0.0f)
+        {
+            ar = w / h;
+        }
+    }
+    return glm::perspective(glm::radians(field_of_view_degrees), ar, near_clip, far_clip);
 }
 
 void Camera::OnAttach()

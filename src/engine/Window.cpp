@@ -27,6 +27,8 @@ Window::Window(int width, int height, const char* title)
     }
 
     glfwMakeContextCurrent(glfw_window_);
+    // Store pointer to this Window for callbacks
+    glfwSetWindowUserPointer(glfw_window_, this);
     // Enable V-Sync by default to cap FPS and avoid CPU spin; can be made configurable
     glfwSwapInterval(1);
     glfwSetFramebufferSizeCallback(glfw_window_, FramebufferSizeCallback);
@@ -67,8 +69,17 @@ void Window::PollEvents() const
     glfwPollEvents();
 }
 
-void Window::FramebufferSizeCallback(GLFWwindow* /*window*/, int width, int height)
+void Window::FramebufferSizeCallback(GLFWwindow* window, int width, int height)
 {
+    // Update the viewport and cache new size on the Window instance
+    if (window)
+    {
+        if (auto* self = static_cast<Window*>(glfwGetWindowUserPointer(window)))
+        {
+            self->width_ = width;
+            self->height_ = height;
+        }
+    }
     glViewport(0, 0, width, height);
 }
 
