@@ -70,7 +70,8 @@ bool Scene::SetSkyFromEquirect(const std::string& path)
     glm::vec3 avg;
     if (Texture::ComputeAverageColorFromFile(path, avg))
     {
-        ambient_color_ = avg * 0.8f;
+        // ambient_color_ = avg * 0.8f;
+        ambient_color_ = avg;
     }
 
     // Create skybox object with MeshRenderer in Skybox mode

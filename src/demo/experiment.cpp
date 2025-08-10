@@ -50,15 +50,16 @@ public:
         auto stationMat = std::make_shared<Material>();
         stationMat->vertex_shader_path = "src/engine/shaders/lit.vert";
         stationMat->fragment_shader_path = "src/engine/shaders/lit.frag";
-        stationMat->color = glm::vec3(0.5f, 0.5f, 0.5f);
-        stationMat->smoothness = 0.4f;
+        stationMat->albedo_texture_path = "resources/station/station.png";
+        catMat->color = glm::vec3(1.0f, 1.0f, 1.0f);
+        stationMat->smoothness = 0.5f;
         for (auto& m : stationMeshes)
         {
             GameObject& station_part = scene_.CreateObject();
             auto* transform = station_part.AddComponent<Transform>();
-            // transform->position = glm::vec3(0.0f, 0.0f, 0.0f);
+            transform->position = glm::vec3(-1.625f, 0.0f, -3.5f);
             transform->rotation_euler = glm::vec3(0.0f, -90.0f, 0.0f);
-            transform->scale *= 0.01f;
+            transform->scale *= 0.0175f;
             auto meshPtr = std::make_shared<Mesh>(std::move(m));
             auto* mr = station_part.AddComponent<MeshRenderer>(meshPtr, stationMat);
         }
@@ -82,7 +83,7 @@ public:
         GameObject& lightObj = scene_.CreateObject();
         auto* lightTransform = lightObj.AddComponent<Transform>();
         lightTransform->position = glm::vec3(0.0f, 3.0f, 0.0f);
-        lightTransform->rotation_euler = glm::vec3(-50.0f, -150.0f, 0.0f);
+        lightTransform->rotation_euler = glm::vec3(-90.0f, -150.0f, 0.0f);
         auto* light = lightObj.AddComponent<Light>();
         light->color = glm::vec3(1.0f, 0.9568627f, 0.8392157f); 
         light->intensity = 1.0f;
