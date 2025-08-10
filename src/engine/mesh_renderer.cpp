@@ -1,5 +1,6 @@
 #include "mesh_renderer.h"
 #include "renderer.h"
+#include "mesh_creator.h"
 #include "game_object.h"
 #include "transform.h"
 #include "scene.h"
@@ -45,30 +46,8 @@ static std::shared_ptr<Mesh> g_unitCube;
 std::shared_ptr<Mesh> MeshRenderer::CreateUnitCube()
 {
     if (g_unitCube) return g_unitCube;
-    const float positions[] = {
-        -1,-1,-1,  1,-1,-1,  1, 1,-1, -1, 1,-1,
-        -1,-1, 1,  1,-1, 1,  1, 1, 1, -1, 1, 1
-    };
-    const unsigned int indices[] = {
-        0,1,2, 2,3,0,
-        4,5,6, 6,7,4,
-        4,0,3, 3,7,4,
-        1,5,6, 6,2,1,
-        4,5,1, 1,0,4,
-        3,2,6, 6,7,3
-    };
-    std::vector<MeshVertex> verts;
-    verts.reserve(8);
-    for (int i = 0; i < 8; ++i)
-    {
-        MeshVertex v{};
-        v.position = glm::vec3(positions[i*3+0], positions[i*3+1], positions[i*3+2]);
-        v.normal = glm::vec3(0,0,0);
-        v.uv = glm::vec2(0,0);
-        verts.push_back(v);
-    }
-    std::vector<unsigned int> idx(indices, indices + 36);
-    g_unitCube = std::make_shared<Mesh>(verts, idx);
+    // Delegate geometry to MeshCreator so we have proper normals/UVs when needed
+    g_unitCube = std::make_shared<Mesh>(MeshCreator::CreateUnitCube());
     return g_unitCube;
 }
 

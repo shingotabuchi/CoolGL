@@ -7,6 +7,7 @@
 #include "engine/renderer.h"
 #include "engine/model_loader.h"
 #include "engine/shader.h"
+#include "engine/mesh_creator.h"
 #include "engine/scene.h"
 #include "engine/game_object.h"
 #include "engine/transform.h"
@@ -79,6 +80,16 @@ public:
         GameObject& catClone = scene_.Instantiate(cat);
         auto* cloneTransform = catClone.GetComponent<Transform>();
         cloneTransform->position = glm::vec3(1.0f, 0.0f, -2.0f);
+
+        // Create Plane
+        GameObject& plane = scene_.CreateObject();
+        auto* planeTransform = plane.AddComponent<Transform>();
+        planeTransform->position = glm::vec3(0.0f, 0.0f, 0.0f);
+        planeTransform->rotation_euler = glm::vec3(0.0f, 0.0f, 0.0f);
+        planeTransform->scale = glm::vec3(1.0f, 1.0f, 1.0f) * 10.0f;
+        Mesh planeMesh = MeshCreator::CreateUnitPlane();
+        Shader planeShader(vertexShaderSrc, fragmentShaderSrc);
+        plane.AddComponent<MeshRenderer>(std::move(planeMesh), std::move(planeShader));
 
         // Create camera object (must exist to render)
         GameObject& camObj = scene_.CreateObject();

@@ -55,7 +55,7 @@ public:
     std::shared_ptr<Mesh> GetMesh() const { return mesh_; }
     std::shared_ptr<Shader> GetShader() const { return shader_; }
 
-    // Utility: create or obtain a shared unit cube mesh
+    // Utility: create or obtain a shared unit cube mesh (internally uses MeshCreator)
     static std::shared_ptr<Mesh> CreateUnitCube();
 
 private:
