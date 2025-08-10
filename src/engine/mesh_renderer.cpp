@@ -4,6 +4,7 @@
 #include "transform.h"
 #include "scene.h"
 #include "light.h"
+#include <glad/glad.h>
 
 void MeshRenderer::OnRender(Renderer& renderer, const glm::mat4& projection, const glm::mat4& view)
 {
@@ -44,6 +45,20 @@ void MeshRenderer::OnRender(Renderer& renderer, const glm::mat4& projection, con
         lightCount = 1;
     }
 
+    // Bind texture (if any) to texture unit 0 and set uniforms expected by textured shader
+    if (diffuse_texture != 0)
+    {
+        glActiveTexture(GL_TEXTURE0);
+        glBindTexture(GL_TEXTURE_2D, diffuse_texture);
+        shader_.use();
+        shader_.set_int("uAlbedo", 0);
+        shader_.set_int("uUseTexture", 1);
+    }
+    else
+    {
+        shader_.use();
+        shader_.set_int("uUseTexture", 0);
+    }
     renderer.DrawMesh(mesh_, shader_, mvp, lightCount, lightDirs, lightColors);
 }
 

@@ -33,6 +33,10 @@ Mesh ModelLoader::FromAiMesh(aiMesh* mesh)
         {
             v.normal = glm::vec3(mesh->mNormals[i].x, mesh->mNormals[i].y, mesh->mNormals[i].z);
         }
+        if (mesh->HasTextureCoords(0))
+        {
+            v.uv = glm::vec2(mesh->mTextureCoords[0][i].x, 1.0f - mesh->mTextureCoords[0][i].y);
+        }
         vertices.push_back(v);
     }
 

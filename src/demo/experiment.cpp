@@ -1,5 +1,7 @@
+#include <glad/glad.h>
 #include <glm/glm.hpp>
 #include <glm/gtc/matrix_transform.hpp>
+#include "engine/texture_loader.h"
 #include "engine/application.h"
 #include "engine/renderer.h"
 #include "engine/model_loader.h"
@@ -15,11 +17,14 @@ static const char *vertexShaderSrc = R"glsl(
     #version 410 core
     layout(location = 0) in vec3 aPos;
     layout(location = 1) in vec3 aNormal;
+    layout(location = 2) in vec2 aUV;
     uniform mat4 uMVP;
     out vec3 vNormal;
+    out vec2 vUV;
     void main() {
         gl_Position = uMVP * vec4(aPos, 1.0);
         vNormal = aNormal;
+        vUV = aUV;
     }
 )glsl";
 
@@ -28,9 +33,12 @@ static const char *fragmentShaderSrc = R"glsl(
     const int MAX_LIGHTS = 4;
     out vec4 FragColor;
     in vec3 vNormal;
+    in vec2 vUV;
     uniform int uLightCount;
     uniform vec3 uLightDirs[MAX_LIGHTS];
     uniform vec3 uLightColors[MAX_LIGHTS];
+    uniform sampler2D uAlbedo;
+    uniform int uUseTexture;
     void main() {
         vec3 N = normalize(vNormal);
         vec3 accum = vec3(0.0);
@@ -39,7 +47,8 @@ static const char *fragmentShaderSrc = R"glsl(
             float diff = max(dot(N, L), 0.0);
             accum += uLightColors[i] * diff;
         }
-        FragColor = vec4(accum, 1.0);
+        vec3 baseColor = (uUseTexture != 0) ? texture(uAlbedo, vUV).rgb : vec3(1.0);
+        FragColor = vec4(baseColor * accum, 1.0);
     }
 )glsl";
 
@@ -58,13 +67,15 @@ public:
         Mesh mesh = ModelLoader::LoadFirstMeshFromFile("resources/cat/cat.fbx");
         Shader shader(vertexShaderSrc, fragmentShaderSrc);
         auto* renderer = cat.AddComponent<MeshRenderer>(std::move(mesh), std::move(shader));
-        renderer->light_color = glm::vec3(1.0f, 1.0f, 1.0f); // fallback if no Light exists
+        renderer->light_color = glm::vec3(1.0f, 0.9568627f, 0.8392157f); // fallback if no Light exists
+
+        // Load cat diffuse texture and assign to renderer
+        renderer->diffuse_texture = TextureLoader::LoadTexture2DFromFile("resources/cat/cattex.png", false);
 
         // Create camera object (must exist to render)
         GameObject& camObj = scene_.CreateObject();
         auto* camTransform = camObj.AddComponent<Transform>();
         camTransform->position = glm::vec3(0.0f, 1.49f, 3.26f);
-        // camTransform->position = glm::vec3(0.0f, 0.0f, 3.26f);
         auto* camera = camObj.AddComponent<Camera>();
         camera->aspect_ratio = 800.0f / 800.0f; // initial aspect; could be updated on resize
         camera->field_of_view_degrees = 60.0f;

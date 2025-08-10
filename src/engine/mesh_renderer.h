@@ -19,6 +19,9 @@ public:
     void OnRender(Renderer& renderer, const glm::mat4& projection, const glm::mat4& view) override;
     void OnAttach() override { cached_transform_ = nullptr; }
 
+    // Optional GL texture ID to bind as diffuse texture to unit 0
+    unsigned int diffuse_texture = 0;
+
 private:
     Mesh mesh_{};
     Shader shader_{};
