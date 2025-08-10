@@ -72,6 +72,11 @@ public:
         auto* renderer = cat.AddComponent<MeshRenderer>(std::move(mesh), std::move(shader));
         renderer->diffuse_texture = TextureLoader::LoadTexture2DFromFile("resources/cat/cattex.png", false);
 
+        // Create cat clone
+        GameObject& catClone = scene_.Instantiate(cat);
+        auto* cloneTransform = catClone.GetComponent<Transform>();
+        cloneTransform->position = glm::vec3(1.0f, 0.0f, -2.0f);
+
         // Create camera object (must exist to render)
         GameObject& camObj = scene_.CreateObject();
         auto* camTransform = camObj.AddComponent<Transform>();
