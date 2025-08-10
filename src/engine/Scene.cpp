@@ -1,6 +1,7 @@
 #include "scene.h"
 #include "game_object.h"
 #include "camera.h"
+#include "light.h"
 
 GameObject& Scene::CreateObject()
 {
@@ -52,6 +53,21 @@ void Scene::UnregisterCamera(Camera* camera)
     {
         active_camera_ = nullptr;
     }
+}
+
+void Scene::RegisterLight(Light* light)
+{
+    // Avoid duplicates
+    for (auto* l : lights_)
+    {
+        if (l == light) return;
+    }
+    lights_.push_back(light);
+}
+
+void Scene::UnregisterLight(Light* light)
+{
+    lights_.erase(std::remove(lights_.begin(), lights_.end(), light), lights_.end());
 }
 
 

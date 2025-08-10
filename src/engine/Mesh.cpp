@@ -63,12 +63,12 @@ void Mesh::CreateBuffers(const std::vector<MeshVertex>& vertices, const std::vec
 
 void Mesh::Bind() const
 {
-    // Avoid redundant VAO binds (optional micro-opt): check current VAO
-    GLint current = 0;
-    glGetIntegerv(GL_VERTEX_ARRAY_BINDING, &current);
-    if (static_cast<GLuint>(current) != vao_)
+    // Cache last bound VAO per thread to avoid redundant driver calls
+    static thread_local GLuint last_vao = 0;
+    if (last_vao != vao_)
     {
         glBindVertexArray(vao_);
+        last_vao = vao_;
     }
 }
 

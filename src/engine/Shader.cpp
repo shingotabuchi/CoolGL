@@ -89,11 +89,11 @@ void Shader::link(GLuint vertex_shader, GLuint fragment_shader)
 
 void Shader::use() const
 {
-    GLint current = 0;
-    glGetIntegerv(GL_CURRENT_PROGRAM, &current);
-    if (static_cast<GLuint>(current) != program_id_)
+    static thread_local GLuint last_program = 0;
+    if (last_program != program_id_)
     {
         glUseProgram(program_id_);
+        last_program = program_id_;
     }
 }
 
@@ -107,6 +107,12 @@ void Shader::set_vec3(const char* name, const glm::vec3& value) const
 {
     GLint loc = get_uniform_location_cached(name);
     glUniform3fv(loc, 1, glm::value_ptr(value));
+}
+
+void Shader::set_int(const char* name, int value) const
+{
+    GLint loc = get_uniform_location_cached(name);
+    glUniform1i(loc, value);
 }
 
 GLint Shader::get_uniform_location_cached(const char* name) const
@@ -129,6 +135,19 @@ void Shader::set_mat4(GLint location, const glm::mat4& value) const
 void Shader::set_vec3(GLint location, const glm::vec3& value) const
 {
     glUniform3fv(location, 1, glm::value_ptr(value));
+}
+
+void Shader::set_vec3_array(GLint location, const glm::vec3* values, int count) const
+{
+    if (count > 0)
+    {
+        glUniform3fv(location, count, reinterpret_cast<const float*>(&values[0]));
+    }
+}
+
+void Shader::set_int(GLint location, int value) const
+{
+    glUniform1i(location, value);
 }
 
 
