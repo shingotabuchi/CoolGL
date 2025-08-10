@@ -70,12 +70,7 @@ public:
         transform->position = glm::vec3(0.0f, 0.0f, 0.0f);
         transform->rotation_euler = glm::vec3(-90.0f, 0.0f, 0.0f);
         cat_transform_ = transform;
-        Mesh mesh = ModelLoader::LoadFirstMeshFromFile(
-            "resources/cat/cat.fbx",
-            aiProcess_Triangulate |
-            aiProcess_JoinIdenticalVertices |
-            aiProcess_ImproveCacheLocality |
-            aiProcess_GenNormals);
+        Mesh mesh = ModelLoader::LoadFirstMeshFromFile("resources/cat/cat.fbx");
         Shader shader(vertexShaderSrc, fragmentShaderSrc);
         auto* renderer = cat.AddComponent<MeshRenderer>(std::move(mesh), std::move(shader));
         auto tex = std::make_shared<Texture>();
@@ -88,7 +83,7 @@ public:
         cloneTransform->position = glm::vec3(1.0f, 0.0f, -2.0f);
 
         // Create station 
-        std::vector<Mesh> stationMeshes = ModelLoader::LoadAllMeshesFromFile("resources/station/station.fbx");
+        std::vector<Mesh> stationMeshes = ModelLoader::LoadAllMeshesFromFile("resources/station/station.fbx", true);
         auto sharedStationShader = std::make_shared<Shader>(vertexShaderSrc, fragmentShaderSrc);
         for (auto& m : stationMeshes)
         {
