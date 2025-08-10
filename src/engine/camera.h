@@ -9,12 +9,17 @@ class Transform;
 class Camera : public Component
 {
 public:
+    enum class ProjectionType { Perspective, Orthographic };
+
     // Public properties (Unity-like simplicity)
     float field_of_view_degrees = 45.0f;   // vertical FOV
     float near_clip = 0.1f;
     float far_clip = 100.0f;
     float aspect_ratio = 1.0f;             // manual aspect when not syncing to window
     bool sync_aspect_with_window = true;    // when true, derive aspect from current viewport
+    ProjectionType projection_type = ProjectionType::Perspective; // default perspective
+    // Orthographic height represented as half-extent in world units (like Unity's size)
+    float orthographic_size = 5.0f;
 
     // Matrices derived from the owning GameObject's Transform
     glm::mat4 ViewMatrix() const;
@@ -31,6 +36,8 @@ public:
         copy->far_clip = far_clip;
         copy->aspect_ratio = aspect_ratio;
         copy->sync_aspect_with_window = sync_aspect_with_window;
+        copy->projection_type = projection_type;
+        copy->orthographic_size = orthographic_size;
         return copy;
     }
 

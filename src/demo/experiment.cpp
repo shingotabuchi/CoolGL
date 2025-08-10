@@ -94,11 +94,14 @@ public:
         // Create camera object (must exist to render)
         GameObject& camObj = scene_.CreateObject();
         auto* camTransform = camObj.AddComponent<Transform>();
-        camTransform->position = glm::vec3(0.0f, 1.49f, 3.26f);
+        camTransform->position = glm::vec3(0.0f, 4.0f, -8.0f);
+        camTransform->rotation_euler = glm::vec3(7.0f, 180.0f, 0.0f);
         auto* camera = camObj.AddComponent<Camera>();
         // By default, camera derives aspect from the current window/viewport
         // Set camera->sync_aspect_with_window = false to control aspect manually
         camera->field_of_view_degrees = 60.0f;
+        // camera->projection_type = Camera::ProjectionType::Orthographic;
+        // camera->orthographic_size = 5.0f;
         camera_ = camera;
 
         // Create a directional light object

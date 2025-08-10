@@ -6,6 +6,7 @@
 #include "scene.h"
 #include "light.h"
 #include <glad/glad.h>
+#include <glm/gtc/matrix_transform.hpp>
 #include <vector>
 
 // Simple skybox shader: equirectangular 2D texture sampled by direction
@@ -78,7 +79,22 @@ void MeshRenderer::OnRender(Renderer& renderer, const glm::mat4& projection, con
         }
         // Bind uniforms and texture
         shader_->use();
-        shader_->set_mat4("uProj", projection);
+        // If the provided projection is orthographic, substitute a perspective-like
+        // projection for the skybox so it fills the screen.
+        glm::mat4 projForSky = projection;
+        const float eps = 1e-6f;
+        // GLM stores matrices in column-major; perspective has m[3][3] ~= 0, ortho has ~= 1
+        if (glm::abs(projection[3][3] - 1.0f) < eps)
+        {
+            GLint vp[4] = {0, 0, 1, 1};
+            glGetIntegerv(GL_VIEWPORT, vp);
+            const float w = static_cast<float>(vp[2]);
+            const float h = static_cast<float>(vp[3]);
+            const float ar = (w > 0.0f && h > 0.0f) ? (w / h) : 1.0f;
+            // Use a reasonable FOV to avoid distortion; skybox depth doesn't matter due to xyww trick
+            projForSky = glm::perspective(glm::radians(60.0f), ar, 0.1f, 10.0f);
+        }
+        shader_->set_mat4("uProj", projForSky);
         shader_->set_mat4("uViewNoT", v);
         if (hasTexture)
         {

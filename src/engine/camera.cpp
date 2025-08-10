@@ -42,7 +42,21 @@ glm::mat4 Camera::ProjectionMatrix() const
             ar = w / h;
         }
     }
-    return glm::perspective(glm::radians(field_of_view_degrees), ar, near_clip, far_clip);
+    if (projection_type == ProjectionType::Perspective)
+    {
+        return glm::perspective(glm::radians(field_of_view_degrees), ar, near_clip, far_clip);
+    }
+    else
+    {
+        // Orthographic projection: symmetrical bounds
+        const float halfHeight = orthographic_size;
+        const float halfWidth = halfHeight * ar;
+        const float left = -halfWidth;
+        const float right = halfWidth;
+        const float bottom = -halfHeight;
+        const float top = halfHeight;
+        return glm::ortho(left, right, bottom, top, near_clip, far_clip);
+    }
 }
 
 void Camera::OnAttach()
