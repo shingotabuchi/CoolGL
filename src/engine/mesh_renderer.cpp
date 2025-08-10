@@ -59,6 +59,14 @@ void MeshRenderer::OnRender(Renderer& renderer, const glm::mat4& projection, con
         shader_.use();
         shader_.set_int("uUseTexture", 0);
     }
+    // Set ambient color from Scene if available
+    if (Owner() && Owner()->SceneContext())
+    {
+        shader_.use();
+        const glm::vec3 ambient = Owner()->SceneContext()->GetAmbientColor();
+        shader_.set_vec3("uAmbient", ambient * material_ambient_multiplier);
+    }
+
     renderer.DrawMesh(mesh_, shader_, mvp, lightCount, lightDirs, lightColors);
 }
 

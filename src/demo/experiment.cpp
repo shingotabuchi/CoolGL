@@ -12,6 +12,7 @@
 #include "engine/mesh_renderer.h"
 #include "engine/camera.h"
 #include "engine/light.h"
+#include <string>
 
 static const char *vertexShaderSrc = R"glsl(
     #version 410 core
@@ -37,11 +38,12 @@ static const char *fragmentShaderSrc = R"glsl(
     uniform int uLightCount;
     uniform vec3 uLightDirs[MAX_LIGHTS];
     uniform vec3 uLightColors[MAX_LIGHTS];
+    uniform vec3 uAmbient; // ambient color derived from skybox
     uniform sampler2D uAlbedo;
     uniform int uUseTexture;
     void main() {
         vec3 N = normalize(vNormal);
-        vec3 accum = vec3(0.0);
+        vec3 accum = uAmbient;
         for (int i = 0; i < uLightCount; ++i) {
             vec3 L = normalize(uLightDirs[i]);
             float diff = max(dot(N, L), 0.0);
@@ -67,7 +69,7 @@ public:
         Mesh mesh = ModelLoader::LoadFirstMeshFromFile("resources/cat/cat.fbx");
         Shader shader(vertexShaderSrc, fragmentShaderSrc);
         auto* renderer = cat.AddComponent<MeshRenderer>(std::move(mesh), std::move(shader));
-        renderer->light_color = glm::vec3(1.0f, 0.9568627f, 0.8392157f); // fallback if no Light exists
+        renderer->light_color = glm::vec3(1.0f, 1.0f, 1.0f); // fallback if no Light exists
 
         // Load cat diffuse texture and assign to renderer
         renderer->diffuse_texture = TextureLoader::LoadTexture2DFromFile("resources/cat/cattex.png", false);
@@ -87,8 +89,11 @@ public:
         lightTransform->position = glm::vec3(0.0f, 3.0f, 0.0f);
         lightTransform->rotation_euler = glm::vec3(-50.0f, -150.0f, 0.0f);
         auto* light = lightObj.AddComponent<Light>();
-        light->color = glm::vec3(1.0f, 1.0f, 1.0f);
+        light->color = glm::vec3(1.0f, 0.9568627f, 0.8392157f); 
         light->intensity = 1.0f;
+
+        // Configure scene sky and ambient from equirectangular texture
+        scene_.SetSkyFromEquirect("resources/cat/catsky.png");
     }
 
 protected:
@@ -100,7 +105,6 @@ protected:
     void OnRender() override
     {
         static Renderer renderer;
-        renderer.BeginFrame(0.1f, 0.2f, 0.3f, 1.0f);
         scene_.Render(renderer);
     }
 

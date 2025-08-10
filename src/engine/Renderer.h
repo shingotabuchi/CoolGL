@@ -17,6 +17,10 @@ public:
                   const glm::vec3* light_dirs_object_space,
                   const glm::vec3* light_colors);
 
+    // Helper to draw only a mesh with a shader when no lighting is needed
+    void DrawSimple(const Mesh& mesh,
+                    const Shader& shader) { shader.use(); mesh.Bind(); mesh.Draw(); }
+
 private:
     // Cached GL state to avoid redundant uniform sets/binds per frame
     struct CachedLightState {

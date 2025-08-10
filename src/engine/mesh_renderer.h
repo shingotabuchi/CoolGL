@@ -22,6 +22,10 @@ public:
     // Optional GL texture ID to bind as diffuse texture to unit 0
     unsigned int diffuse_texture = 0;
 
+    // Optional per-material ambient multiplier (defaults to 1). The final
+    // ambient used is scene.ambient_color * material_ambient_multiplier.
+    glm::vec3 material_ambient_multiplier{1.0f, 1.0f, 1.0f};
+
 private:
     Mesh mesh_{};
     Shader shader_{};
