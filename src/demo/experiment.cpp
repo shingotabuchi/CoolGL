@@ -14,6 +14,7 @@
 #include "engine/mesh_renderer.h"
 #include "engine/camera.h"
 #include "engine/light.h"
+#include <assimp/postprocess.h>
 #include <string>
 
 static const char *vertexShaderSrc = R"glsl(
@@ -69,7 +70,12 @@ public:
         transform->position = glm::vec3(0.0f, 0.0f, 0.0f);
         transform->rotation_euler = glm::vec3(-90.0f, 0.0f, 0.0f);
         cat_transform_ = transform;
-        Mesh mesh = ModelLoader::LoadFirstMeshFromFile("resources/cat/cat.fbx");
+        Mesh mesh = ModelLoader::LoadFirstMeshFromFile(
+            "resources/cat/cat.fbx",
+            aiProcess_Triangulate |
+            aiProcess_JoinIdenticalVertices |
+            aiProcess_ImproveCacheLocality |
+            aiProcess_GenNormals);
         Shader shader(vertexShaderSrc, fragmentShaderSrc);
         auto* renderer = cat.AddComponent<MeshRenderer>(std::move(mesh), std::move(shader));
         auto tex = std::make_shared<Texture>();
@@ -81,15 +87,19 @@ public:
         auto* cloneTransform = catClone.GetComponent<Transform>();
         cloneTransform->position = glm::vec3(1.0f, 0.0f, -2.0f);
 
-        // Create station
-        GameObject& station = scene_.CreateObject();
-        auto* stationTransform = station.AddComponent<Transform>();
-        stationTransform->position = glm::vec3(-1.827f, 0.0f, 2.6f);
-        stationTransform->rotation_euler = glm::vec3(0.0f, 0.0f, 0.0f);
-        stationTransform->scale = glm::vec3(1.0f, 1.0f, 1.0f) * 2.0f;
-        Mesh stationMesh = ModelLoader::LoadFirstMeshFromFile("resources/station/station.fbx");
-        Shader stationShader(vertexShaderSrc, fragmentShaderSrc);
-        auto* stationRenderer = station.AddComponent<MeshRenderer>(std::move(stationMesh), std::move(stationShader));
+        // Create station 
+        std::vector<Mesh> stationMeshes = ModelLoader::LoadAllMeshesFromFile("resources/station/station.fbx");
+        auto sharedStationShader = std::make_shared<Shader>(vertexShaderSrc, fragmentShaderSrc);
+        for (auto& m : stationMeshes)
+        {
+            GameObject& station_part = scene_.CreateObject();
+            auto* transform = station_part.AddComponent<Transform>();
+            // transform->position = glm::vec3(0.0f, 0.0f, 0.0f);
+            transform->rotation_euler = glm::vec3(0.0f, -90.0f, 0.0f);
+            transform->scale *= 0.01f;
+            auto meshPtr = std::make_shared<Mesh>(std::move(m));
+            station_part.AddComponent<MeshRenderer>(meshPtr, sharedStationShader);
+        }
 
         // Create camera object (must exist to render)
         GameObject& camObj = scene_.CreateObject();

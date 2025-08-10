@@ -9,7 +9,9 @@
 class ModelLoader
 {
 public:
-    static Mesh LoadFirstMeshFromFile(const std::string& path);
+    // Optional Assimp post-process flags. If 0, sensible defaults are used internally.
+    static Mesh LoadFirstMeshFromFile(const std::string& path, unsigned int postProcessFlags = 0);
+    static std::vector<Mesh> LoadAllMeshesFromFile(const std::string& path, unsigned int postProcessFlags = 0);
 
 private:
     static Mesh FromAiMesh(aiMesh* mesh);

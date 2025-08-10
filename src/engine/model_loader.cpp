@@ -3,18 +3,51 @@
 #include <assimp/Importer.hpp>
 #include <assimp/postprocess.h>
 #include <stdexcept>
+#include <vector>
 
-Mesh ModelLoader::LoadFirstMeshFromFile(const std::string& path)
+Mesh ModelLoader::LoadFirstMeshFromFile(const std::string& path, unsigned int postProcessFlags)
 {
     Assimp::Importer importer;
-    const aiScene* scene = importer.ReadFile(path,
-        aiProcess_Triangulate | aiProcess_JoinIdenticalVertices | aiProcess_ImproveCacheLocality | aiProcess_GenNormals);
+    // Use provided flags or fallback to defaults
+    const unsigned int flags = (postProcessFlags != 0)
+        ? postProcessFlags
+        : (aiProcess_Triangulate |
+           aiProcess_JoinIdenticalVertices |
+           aiProcess_ImproveCacheLocality |
+           aiProcess_GenNormals |
+           aiProcess_PreTransformVertices);
+    const aiScene* scene = importer.ReadFile(path, flags);
     if (!scene || !scene->HasMeshes())
     {
         throw std::runtime_error("Failed to load mesh from: " + path);
     }
     aiMesh* mesh = scene->mMeshes[0];
     return FromAiMesh(mesh);
+}
+
+std::vector<Mesh> ModelLoader::LoadAllMeshesFromFile(const std::string& path, unsigned int postProcessFlags)
+{
+    Assimp::Importer importer;
+    const unsigned int flags = (postProcessFlags != 0)
+        ? postProcessFlags
+        : (aiProcess_Triangulate |
+           aiProcess_JoinIdenticalVertices |
+           aiProcess_ImproveCacheLocality |
+           aiProcess_GenNormals |
+           aiProcess_PreTransformVertices);
+    const aiScene* scene = importer.ReadFile(path, flags);
+    if (!scene || !scene->HasMeshes())
+    {
+        throw std::runtime_error("Failed to load meshes from: " + path);
+    }
+    std::vector<Mesh> result;
+    result.reserve(scene->mNumMeshes);
+    for (unsigned int i = 0; i < scene->mNumMeshes; ++i)
+    {
+        aiMesh* mesh = scene->mMeshes[i];
+        result.emplace_back(FromAiMesh(mesh));
+    }
+    return result;
 }
 
 Mesh ModelLoader::FromAiMesh(aiMesh* mesh)
