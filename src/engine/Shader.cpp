@@ -3,6 +3,8 @@
 #include <glm/gtc/type_ptr.hpp>
 #include <stdexcept>
 #include <vector>
+#include <fstream>
+#include <sstream>
 
 static void ThrowIfShaderError(GLuint shader, const char* stage)
 {
@@ -87,6 +89,24 @@ void Shader::link(GLuint vertex_shader, GLuint fragment_shader)
     ThrowIfLinkError(program_id_);
 }
 
+Shader Shader::FromFiles(const std::string& vertex_path, const std::string& fragment_path)
+{
+    auto read_file = [](const std::string& path) -> std::string {
+        std::ifstream file(path, std::ios::in | std::ios::binary);
+        if (!file)
+        {
+            throw std::runtime_error(std::string("Failed to open shader file: ") + path);
+        }
+        std::ostringstream ss;
+        ss << file.rdbuf();
+        return ss.str();
+    };
+
+    const std::string vs = read_file(vertex_path);
+    const std::string fs = read_file(fragment_path);
+    return Shader(vs.c_str(), fs.c_str());
+}
+
 void Shader::use() const
 {
     static thread_local GLuint last_program = 0;
@@ -107,6 +127,12 @@ void Shader::set_vec3(const char* name, const glm::vec3& value) const
 {
     GLint loc = get_uniform_location_cached(name);
     glUniform3fv(loc, 1, glm::value_ptr(value));
+}
+
+void Shader::set_float(const char* name, float value) const
+{
+    GLint loc = get_uniform_location_cached(name);
+    glUniform1f(loc, value);
 }
 
 void Shader::set_int(const char* name, int value) const
@@ -143,6 +169,11 @@ void Shader::set_vec3_array(GLint location, const glm::vec3* values, int count) 
     {
         glUniform3fv(location, count, reinterpret_cast<const float*>(&values[0]));
     }
+}
+
+void Shader::set_float(GLint location, float value) const
+{
+    glUniform1f(location, value);
 }
 
 void Shader::set_int(GLint location, int value) const

@@ -10,6 +10,7 @@ class Shader
 public:
     Shader() = default;
     Shader(const char* vertex_source, const char* fragment_source);
+    static Shader FromFiles(const std::string& vertex_path, const std::string& fragment_path);
 
     Shader(const Shader&) = delete;
     Shader& operator=(const Shader&) = delete;
@@ -24,6 +25,7 @@ public:
 
     void set_mat4(const char* name, const glm::mat4& value) const;
     void set_vec3(const char* name, const glm::vec3& value) const;
+    void set_float(const char* name, float value) const;
     void set_int(const char* name, int value) const;
 
     // Fast setters using cached uniform locations (call once you know the name)
@@ -31,6 +33,7 @@ public:
     void set_mat4(GLint location, const glm::mat4& value) const;
     void set_vec3(GLint location, const glm::vec3& value) const;
     void set_vec3_array(GLint location, const glm::vec3* values, int count) const;
+    void set_float(GLint location, float value) const;
     void set_int(GLint location, int value) const;
 
 private:

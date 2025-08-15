@@ -5,17 +5,16 @@
 #include <stdexcept>
 #include <vector>
 
-Mesh ModelLoader::LoadFirstMeshFromFile(const std::string& path, unsigned int postProcessFlags)
+Mesh ModelLoader::LoadFirstMeshFromFile(const std::string& path, bool pre_transform_vertices)
 {
     Assimp::Importer importer;
     // Use provided flags or fallback to defaults
-    const unsigned int flags = (postProcessFlags != 0)
-        ? postProcessFlags
-        : (aiProcess_Triangulate |
-           aiProcess_JoinIdenticalVertices |
-           aiProcess_ImproveCacheLocality |
-           aiProcess_GenNormals |
-           aiProcess_PreTransformVertices);
+    const unsigned int flags = 
+        aiProcess_Triangulate |
+        aiProcess_JoinIdenticalVertices |
+        aiProcess_ImproveCacheLocality |
+        aiProcess_GenNormals |
+        (pre_transform_vertices ? aiProcess_PreTransformVertices : 0);
     const aiScene* scene = importer.ReadFile(path, flags);
     if (!scene || !scene->HasMeshes())
     {
@@ -25,16 +24,15 @@ Mesh ModelLoader::LoadFirstMeshFromFile(const std::string& path, unsigned int po
     return FromAiMesh(mesh);
 }
 
-std::vector<Mesh> ModelLoader::LoadAllMeshesFromFile(const std::string& path, unsigned int postProcessFlags)
+std::vector<Mesh> ModelLoader::LoadAllMeshesFromFile(const std::string& path, bool pre_transform_vertices)
 {
     Assimp::Importer importer;
-    const unsigned int flags = (postProcessFlags != 0)
-        ? postProcessFlags
-        : (aiProcess_Triangulate |
-           aiProcess_JoinIdenticalVertices |
-           aiProcess_ImproveCacheLocality |
-           aiProcess_GenNormals |
-           aiProcess_PreTransformVertices);
+    const unsigned int flags = 
+        aiProcess_Triangulate |
+        aiProcess_JoinIdenticalVertices |
+        aiProcess_ImproveCacheLocality |
+        aiProcess_GenNormals |
+        (pre_transform_vertices ? aiProcess_PreTransformVertices : 0);
     const aiScene* scene = importer.ReadFile(path, flags);
     if (!scene || !scene->HasMeshes())
     {
