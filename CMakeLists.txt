@@ -75,6 +75,15 @@ target_link_libraries(engine PUBLIC ${COMMON_LIBS})
 function(add_demo target_name source_file)
   add_executable(${target_name} ${source_file})
   target_link_libraries(${target_name} PRIVATE engine ${COMMON_LIBS})
+
+  # --- FIX ADDED HERE ---
+  # Set execute permissions for the target on Unix-like systems (macOS, Linux)
+  # This prevents "Permission denied" errors when running from the Makefile.
+  if(UNIX)
+    set_target_properties(${target_name} PROPERTIES
+      PERMISSIONS OWNER_EXECUTE GROUP_EXECUTE WORLD_EXECUTE
+    )
+  endif()
 endfunction()
 
 # ———————————————————————
