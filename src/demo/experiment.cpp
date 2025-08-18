@@ -50,6 +50,7 @@ public:
         GameObject& catClone = scene_.Instantiate(cat);
         auto* cloneTransform = catClone.GetComponent<Transform>();
         cloneTransform->position = glm::vec3(1.0f, 0.0f, -2.0f);
+        cloneTransform->rotation_euler = glm::vec3(90.0f, 180.0f, 0.0f);
 
         // Create station 
         std::vector<Mesh> stationMeshes = ModelLoader::LoadAllMeshesFromFile("resources/station/station.fbx", true);
