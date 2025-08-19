@@ -5,6 +5,7 @@ layout(location = 1) in vec3 aNormal;
 layout(location = 2) in vec2 aUV;
 
 uniform mat4 uMVP;
+uniform mat4 uModel; 
 
 out vec3 vNormal; // world-space normal
 out vec2 vUV;
@@ -12,7 +13,7 @@ out vec2 vUV;
 void main()
 {
     gl_Position = uMVP * vec4(aPos, 1.0);
-    vNormal = uMVP * vec4(aNormal, 1.0);
+    vNormal = mat3(uModel) * aNormal;
     vUV = aUV;
 }
 

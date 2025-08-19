@@ -201,6 +201,7 @@ void MeshRenderer::OnRender(Renderer &renderer, const glm::mat4 &projection, con
         const glm::vec3 objectWorldPos = glm::vec3(model * glm::vec4(0.0f, 0.0f, 0.0f, 1.0f));
         const glm::vec3 worldViewDir = glm::normalize(cameraWorldPos - objectWorldPos);
         shader_->set_vec3("uViewDir", worldViewDir);
+        shader_->set_mat4("uModel", model);
 
         renderer.DrawMesh(*mesh_, *shader_, mvp);
     }

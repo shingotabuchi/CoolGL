@@ -80,7 +80,6 @@ void Renderer::DrawMesh(const Mesh &mesh,
 
     if (s_cached_light_state_.has_changed)
     {
-        std::cout << "ayo" << std::endl;
         auto count = s_cached_light_state_.count;
         shader.set_int(locLightCount, count);
         shader.set_vec3_array(locLightDirs0, s_cached_light_state_.dirs, count);
