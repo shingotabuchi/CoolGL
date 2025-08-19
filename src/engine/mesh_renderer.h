@@ -5,20 +5,25 @@
 #include "shader.h"
 #include "texture.h"
 #include "material.h"
+#include "renderer.h"
 #include <glm/glm.hpp>
 #include <memory>
 
-class Renderer;
+class Transform;
 
 class MeshRenderer : public Component
 {
 public:
     MeshRenderer() = default;
-    enum class RenderMode { Lit, Unlit, Skybox };
+    enum class RenderMode
+    {
+        Lit,
+        Unlit,
+        Skybox
+    };
     // Construct with owned GPU resources; stored as shared so clones can share them
     MeshRenderer(Mesh mesh, Shader shader)
-        : mesh_(std::make_shared<Mesh>(std::move(mesh)))
-        , shader_(std::make_shared<Shader>(std::move(shader))) {}
+        : mesh_(std::make_shared<Mesh>(std::move(mesh))), shader_(std::make_shared<Shader>(std::move(shader))) {}
 
     // Construct with shared resources directly
     MeshRenderer(std::shared_ptr<Mesh> mesh, std::shared_ptr<Shader> shader)
@@ -31,7 +36,7 @@ public:
     // Deprecated: lighting now comes from Scene's active Light
     glm::vec3 light_color{1.0f, 1.0f, 1.0f};
 
-    void OnRender(Renderer& renderer, const glm::mat4& projection, const glm::mat4& view) override;
+    void OnRender(Renderer &renderer, const glm::mat4 &projection, const glm::mat4 &view) override;
     void OnAttach() override { cached_transform_ = nullptr; }
 
     // Optional texture used as diffuse/albedo (legacy path, prefer Material).
@@ -76,8 +81,6 @@ private:
     std::shared_ptr<Mesh> mesh_{};
     std::shared_ptr<Shader> shader_{};
     std::shared_ptr<Material> material_{};
-    // Cache to avoid per-frame GetComponent lookup
-    mutable class Transform* cached_transform_ = nullptr;
+    Transform *cached_transform_ = nullptr;
+    Renderer::CachedLightState cached_light_state_{};
 };
-
-

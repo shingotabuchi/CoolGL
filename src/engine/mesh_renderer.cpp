@@ -230,6 +230,6 @@ void MeshRenderer::OnRender(Renderer &renderer, const glm::mat4 &projection, con
         const glm::vec3 objectViewDir = glm::normalize(glm::vec3(invModel * glm::vec4(worldViewDir, 0.0f)));
         shader_->set_vec3("uViewDir", objectViewDir);
 
-        renderer.DrawMesh(*mesh_, *shader_, mvp, lightCount, lightDirs, lightColors);
+        renderer.DrawMesh(*mesh_, *shader_, cached_light_state_, mvp, lightCount, lightDirs, lightColors);
     }
 }
