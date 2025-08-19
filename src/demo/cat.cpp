@@ -45,7 +45,7 @@ public:
         catMat->albedo_texture_path = "resources/cat/cattex.png";
         catMat->color = glm::vec3(1.0f, 1.0f, 1.0f);
         catMat->smoothness = 0.6f;
-        auto *renderer = cat.AddComponent<MeshRenderer>(meshPtrCat, catMat);
+        cat.AddComponent<MeshRenderer>(meshPtrCat, catMat);
 
         // Create cat clone
         GameObject &catClone = scene_.Instantiate(cat);
