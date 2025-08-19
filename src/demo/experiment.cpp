@@ -19,6 +19,7 @@
 #include "engine/light.h"
 #include <assimp/postprocess.h>
 #include <string>
+#include <iostream>
 
 // Accumulate mouse wheel scroll between frames
 static double g_scroll_y_ = 0.0;
@@ -50,7 +51,7 @@ public:
         GameObject& catClone = scene_.Instantiate(cat);
         auto* cloneTransform = catClone.GetComponent<Transform>();
         cloneTransform->position = glm::vec3(1.0f, 0.0f, -2.0f);
-        cloneTransform->rotation_euler = glm::vec3(90.0f, 180.0f, 0.0f);
+        cloneTransform->rotation_euler = glm::vec3(-90.0f, 180.0f, 0.0f);
 
         // Create station 
         std::vector<Mesh> stationMeshes = ModelLoader::LoadAllMeshesFromFile("resources/station/station.fbx", true);
@@ -75,20 +76,13 @@ public:
         GameObject& camObj = scene_.CreateObject();
         auto* camTransform = camObj.AddComponent<Transform>();
         camTransform->position = glm::vec3(0.0f, 4.0f, -8.0f);
-        camTransform->rotation_euler = glm::vec3(7.0f, 180.0f, 0.0f);
-        // camTransform->position = glm::vec3(0.0f, 1.49f, 5.0f);
-        // camTransform->rotation_euler = glm::vec3(0.0f, 0.0f, 0.0f);
+        camTransform->rotation_euler = glm::vec3(-7.0f, 180.0f, 0.0f);
         auto* camera = camObj.AddComponent<Camera>();
-        // By default, camera derives aspect from the current window/viewport
-        // Set camera->sync_aspect_with_window = false to control aspect manually
         camera->field_of_view_degrees = 60.0f;
-        // camera->projection_type = Camera::ProjectionType::Orthographic;
-        // camera->orthographic_size = 5.0f;
         camera_ = camera;
 
         // Initialize camera control state
         camera_transform_ = camTransform;
-        cam_orientation_ = glm::quat(glm::radians(camera_transform_->rotation_euler));
 
         // Register a scroll callback for zooming
         glfwSetScrollCallback(window_->Handle(), [](GLFWwindow* /*w*/, double /*xoff*/, double yoff) {
@@ -99,7 +93,7 @@ public:
         GameObject& lightObj = scene_.CreateObject();
         auto* lightTransform = lightObj.AddComponent<Transform>();
         lightTransform->position = glm::vec3(0.0f, 3.0f, 0.0f);
-        lightTransform->rotation_euler = glm::vec3(-90.0f, -150.0f, 0.0f);
+        lightTransform->rotation_euler = glm::vec3(45.0f, -120.0f, 0.0f);
         auto* light = lightObj.AddComponent<Light>();
         light->color = glm::vec3(1.0f, 0.9568627f, 0.8392157f); 
         light->intensity = 1.0f;
@@ -139,59 +133,41 @@ protected:
         const float pan_sensitivity = 0.01f;   // world units per pixel
         const float zoom_speed = 0.5f;         // world units per scroll step
 
-        // Right mouse: rotate camera around CAM up (horizontal) and CAM right (vertical)
+        // --- CAMERA ROTATION WITH EULER ANGLES ---
         if (right_down)
         {
-            const float yaw_deg   = static_cast<float>(dx) * rotate_sensitivity;
-            const float pitch_deg = static_cast<float>(-dy) * rotate_sensitivity;
+            // Directly modify the euler angles
+            camera_transform_->rotation_euler.y += static_cast<float>(dx) * rotate_sensitivity;
+            camera_transform_->rotation_euler.x += static_cast<float>(dy) * rotate_sensitivity;
 
-            // Build basis from current orientation
-            const glm::mat3 rot = glm::mat3_cast(cam_orientation_);
-            const glm::vec3 cam_right = glm::normalize(rot * glm::vec3(1, 0, 0));
-            const glm::vec3 cam_up    = glm::normalize(rot * glm::vec3(0, 1, 0));
-
-            // Apply yaw about camera up
-            if (yaw_deg != 0.0f)
-            {
-                const glm::quat q_yaw = glm::angleAxis(glm::radians(yaw_deg), cam_up);
-                cam_orientation_ = glm::normalize(q_yaw * cam_orientation_);
-            }
-
-            // Recompute right after yaw for consistent pitch axis
-            {
-                const glm::mat3 rot2 = glm::mat3_cast(cam_orientation_);
-                const glm::vec3 right2 = glm::normalize(rot2 * glm::vec3(1, 0, 0));
-                if (pitch_deg != 0.0f)
-                {
-                    const glm::quat q_pitch = glm::angleAxis(glm::radians(pitch_deg), right2);
-                    cam_orientation_ = glm::normalize(q_pitch * cam_orientation_);
-                }
-            }
-
-            // Sync back to Transform
-            const glm::vec3 euler_xyz = glm::degrees(glm::eulerAngles(cam_orientation_));
-            camera_transform_->rotation_euler = euler_xyz;
+            // Clamp pitch to prevent flipping
+            camera_transform_->rotation_euler.x = glm::clamp(camera_transform_->rotation_euler.x, -89.0f, 89.0f);
         }
 
-        // Middle mouse: pan along camera right/up. Match mouse direction (no axis invert)
+        // Get the final orientation for panning and zooming
+        glm::quat current_orientation = glm::quat(glm::radians(camera_transform_->rotation_euler));
+        
+        // Middle mouse: pan along camera right/up.
         if (middle_down)
         {
-            const glm::mat3 rot = glm::mat3_cast(cam_orientation_);
+            const glm::mat3 rot = glm::mat3_cast(current_orientation);
             const glm::vec3 cam_right = glm::normalize(rot * glm::vec3(1, 0, 0));
             const glm::vec3 cam_up    = glm::normalize(rot * glm::vec3(0, 1, 0));
             const glm::vec3 pan_delta = cam_right * static_cast<float>(dx) * pan_sensitivity
-                                      + cam_up    * static_cast<float>(-dy) * pan_sensitivity; // -dy so drag up moves up
+                                      + cam_up    * static_cast<float>(-dy) * pan_sensitivity;
             camera_transform_->position += pan_delta;
         }
 
         // Scroll: dolly zoom along camera forward
         if (g_scroll_y_ != 0.0)
         {
-            const glm::mat3 rot = glm::mat3_cast(cam_orientation_);
+            const glm::mat3 rot = glm::mat3_cast(current_orientation);
             const glm::vec3 cam_forward = glm::normalize(rot * glm::vec3(0, 0, -1));
             camera_transform_->position += cam_forward * static_cast<float>(g_scroll_y_) * zoom_speed;
             g_scroll_y_ = 0.0;
         }
+
+        auto rot = camera_transform_->rotation_euler;
     }
 
     void OnRender() override
@@ -206,9 +182,6 @@ private:
     float catRotationSpeed_ = 1.0f;
     Camera* camera_ = nullptr;
     Transform* camera_transform_ = nullptr;
-
-    // Orientation state (quaternion) for camera-space rotations
-    glm::quat cam_orientation_{};
 
     // Mouse state
     bool first_mouse_sample_ = true;
