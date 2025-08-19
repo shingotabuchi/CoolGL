@@ -2,6 +2,7 @@
 
 const int MAX_LIGHTS = 4;
 
+in vec3 vPosition; // world-space
 in vec3 vNormal; // world-space
 in vec2 vUV;
 out vec4 FragColor;
@@ -17,7 +18,7 @@ uniform sampler2D uAlbedo;
 uniform int uUseTexture;
 uniform vec3 uColor;       // tint
 uniform float uSmoothness; // [0..1]
-uniform vec3 uViewDir;     // world-space view dir (towards camera)
+uniform vec3 uCamPos;     // world-space cam position
 
 void main()
 {
@@ -26,7 +27,7 @@ void main()
     vec3 baseColor = texColor * uColor;
 
     // Diffuse + Specular (Blinn-Phong)
-    vec3 V = normalize(uViewDir);
+    vec3 V = normalize(uCamPos - vPosition);
     float shininess = mix(1.0, 256.0, clamp(uSmoothness, 0.0, 1.0));
     float specStrength = 0.5;
 

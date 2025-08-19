@@ -36,7 +36,7 @@ void Renderer::BeginFrame(float r, float g, float b, float a)
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 }
 
-void Renderer::UpdateLightState(int light_count, const glm::vec3 *light_dirs, const glm::vec3 *light_colors)
+void Renderer::UpdateLightState(int light_count, const glm::vec3 *light_dirs, const glm::vec3 *light_colors, const glm::vec3 cam_pos)
 {
     s_cached_light_state_.has_changed = s_cached_light_state_.count != light_count;
 
@@ -56,6 +56,14 @@ void Renderer::UpdateLightState(int light_count, const glm::vec3 *light_dirs, co
             s_cached_light_state_.has_changed = true;
         }
     }
+    if (!s_cached_light_state_.has_changed)
+    {
+        const glm::vec3 diff = s_cached_light_state_.cam_pos - cam_pos;
+        if (glm::dot(diff, diff) > 1e-12f)
+        {
+            s_cached_light_state_.has_changed = true;
+        }
+    }
 
     if (s_cached_light_state_.has_changed)
     {
@@ -64,6 +72,7 @@ void Renderer::UpdateLightState(int light_count, const glm::vec3 *light_dirs, co
             s_cached_light_state_.dirs[i] = light_dirs[i];
         for (int i = 0; i < light_count; ++i)
             s_cached_light_state_.colors[i] = light_colors[i];
+        s_cached_light_state_.cam_pos = cam_pos;
     }
 }
 
@@ -84,6 +93,7 @@ void Renderer::DrawMesh(const Mesh &mesh,
         shader.set_int(locLightCount, count);
         shader.set_vec3_array(locLightDirs0, s_cached_light_state_.dirs, count);
         shader.set_vec3_array(locLightColors0, s_cached_light_state_.colors, count);
+        shader.set_vec3("uCamPos", s_cached_light_state_.cam_pos);
     }
 
     mesh.Bind();

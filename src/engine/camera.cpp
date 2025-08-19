@@ -26,6 +26,15 @@ glm::mat4 Camera::ViewMatrix() const
     return glm::inverse(world);
 }
 
+glm::vec3 Camera::Position() const
+{
+    if (!cached_transform_ && Owner())
+    {
+        cached_transform_ = Owner()->GetComponent<Transform>();
+    }
+    return cached_transform_->position;
+}
+
 glm::mat4 Camera::ProjectionMatrix() const
 {
     float ar = aspect_ratio;

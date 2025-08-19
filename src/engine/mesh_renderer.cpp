@@ -8,6 +8,7 @@
 #include <glad/glad.h>
 #include <glm/gtc/matrix_transform.hpp>
 #include <vector>
+#include <iostream>
 
 // Simple skybox shader: equirectangular 2D texture sampled by direction
 static const char *kSkyVS = R"glsl(
@@ -138,7 +139,6 @@ void MeshRenderer::OnRender(Renderer &renderer, const glm::mat4 &projection, con
 
     // Precompute inverse(model) for transforming directions to object space
     const glm::mat4 invModel = glm::inverse(model);
-
     // Resolve shader and textures from Material if present
     if (material_)
     {
@@ -194,15 +194,7 @@ void MeshRenderer::OnRender(Renderer &renderer, const glm::mat4 &projection, con
         const float smoothnessToUse = material_ ? material_->smoothness : smoothness;
         shader_->set_vec3("uColor", colorToUse);
         shader_->set_float("uSmoothness", smoothnessToUse);
-
-        // Approximate a single view direction per object in object space
-        const glm::mat4 invView = glm::inverse(view);
-        const glm::vec3 cameraWorldPos = glm::vec3(invView * glm::vec4(0.0f, 0.0f, 0.0f, 1.0f));
-        const glm::vec3 objectWorldPos = glm::vec3(model * glm::vec4(0.0f, 0.0f, 0.0f, 1.0f));
-        const glm::vec3 worldViewDir = glm::normalize(cameraWorldPos - objectWorldPos);
-        shader_->set_vec3("uViewDir", worldViewDir);
         shader_->set_mat4("uModel", model);
-
         renderer.DrawMesh(*mesh_, *shader_, mvp);
     }
 }
