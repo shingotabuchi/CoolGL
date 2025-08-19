@@ -10,33 +10,33 @@
 
 #include <SOIL2.h>
 
-GameObject& Scene::CreateObject()
+GameObject &Scene::CreateObject()
 {
     auto obj = std::make_unique<GameObject>();
-    GameObject& ref = *obj;
+    GameObject &ref = *obj;
     ref.SetScene(this);
     objects_.push_back(std::move(obj));
     return ref;
 }
 
-GameObject& Scene::Instantiate(const GameObject& original)
+GameObject &Scene::Instantiate(const GameObject &original)
 {
-    GameObject& clone = CreateObject();
+    GameObject &clone = CreateObject();
     original.CloneComponentsTo(clone);
     return clone;
 }
 
 void Scene::Update(float time_seconds)
 {
-    for (auto& obj : objects_)
+    for (auto &obj : objects_)
     {
         obj->Update(time_seconds);
     }
 }
 
-void Scene::Render(Renderer& renderer)
+void Scene::Render(Renderer &renderer)
 {
-    const Camera* activeCamera = active_camera_;
+    const Camera *activeCamera = active_camera_;
     if (!activeCamera)
     {
         // No camera: skip rendering to enforce 'spawn a camera to render'
@@ -54,13 +54,13 @@ void Scene::Render(Renderer& renderer)
         skybox_object_->Render(renderer, projection, view);
     }
 
-    for (auto& obj : objects_)
+    for (auto &obj : objects_)
     {
         obj->Render(renderer, projection, view);
     }
 }
 
-bool Scene::SetSkyFromEquirect(const std::string& path)
+bool Scene::SetSkyFromEquirect(const std::string &path)
 {
     // Load GL texture into a persistent shared Texture
     auto sky_tex = std::make_shared<Texture>();
@@ -80,7 +80,7 @@ bool Scene::SetSkyFromEquirect(const std::string& path)
         skybox_object_ = std::make_unique<GameObject>();
         skybox_object_->SetScene(this);
     }
-    MeshRenderer* mr = skybox_object_->GetComponent<MeshRenderer>();
+    MeshRenderer *mr = skybox_object_->GetComponent<MeshRenderer>();
     if (!mr)
     {
         mr = skybox_object_->AddComponent<MeshRenderer>();
@@ -91,8 +91,7 @@ bool Scene::SetSkyFromEquirect(const std::string& path)
     return true;
 }
 
-
-void Scene::RegisterCamera(Camera* camera)
+void Scene::RegisterCamera(Camera *camera)
 {
     // First-come-first-serve; allow swapping by explicit unregister/register order
     if (!active_camera_)
@@ -101,7 +100,7 @@ void Scene::RegisterCamera(Camera* camera)
     }
 }
 
-void Scene::UnregisterCamera(Camera* camera)
+void Scene::UnregisterCamera(Camera *camera)
 {
     if (active_camera_ == camera)
     {
@@ -109,19 +108,18 @@ void Scene::UnregisterCamera(Camera* camera)
     }
 }
 
-void Scene::RegisterLight(Light* light)
+void Scene::RegisterLight(Light *light)
 {
     // Avoid duplicates
-    for (auto* l : lights_)
+    for (auto *l : lights_)
     {
-        if (l == light) return;
+        if (l == light)
+            return;
     }
     lights_.push_back(light);
 }
 
-void Scene::UnregisterLight(Light* light)
+void Scene::UnregisterLight(Light *light)
 {
     lights_.erase(std::remove(lights_.begin(), lights_.end(), light), lights_.end());
 }
-
-

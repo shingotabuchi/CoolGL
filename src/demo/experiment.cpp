@@ -81,6 +81,11 @@ public:
         light->color = glm::vec3(1.0f, 0.9568627f, 0.8392157f);
         light->intensity = 1.0f;
 
+        // // Light clone
+        // GameObject &light_clone_obj = scene_.Instantiate(light_obj);
+        // auto *light_clone_transform = light_clone_obj.GetComponent<Transform>();
+        // light_clone_transform->rotation_euler = glm::vec3(45.0f, 60.0f, 0.0f);
+
         // Configure scene sky and ambient from equirectangular texture
         scene_.SetSkyFromEquirect("resources/cat/catsky.png");
     }
