@@ -1,10 +1,9 @@
 #include "window.h"
 
-#define GLFW_INCLUDE_NONE
 #include <glad/glad.h>
 #include <stdexcept>
 
-Window::Window(int width, int height, const char* title)
+Window::Window(int width, int height, const char *title)
     : width_(width), height_(height)
 {
     if (!glfwInit())
@@ -69,12 +68,12 @@ void Window::PollEvents() const
     glfwPollEvents();
 }
 
-void Window::FramebufferSizeCallback(GLFWwindow* window, int width, int height)
+void Window::FramebufferSizeCallback(GLFWwindow *window, int width, int height)
 {
     // Update the viewport and cache new size on the Window instance
     if (window)
     {
-        if (auto* self = static_cast<Window*>(glfwGetWindowUserPointer(window)))
+        if (auto *self = static_cast<Window *>(glfwGetWindowUserPointer(window)))
         {
             self->width_ = width;
             self->height_ = height;
@@ -82,5 +81,3 @@ void Window::FramebufferSizeCallback(GLFWwindow* window, int width, int height)
     }
     glViewport(0, 0, width, height);
 }
-
-

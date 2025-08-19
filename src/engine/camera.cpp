@@ -12,7 +12,7 @@ glm::mat4 Camera::ViewMatrix() const
     {
         cached_transform_ = Owner()->GetComponent<Transform>();
     }
-    const Transform* t = cached_transform_;
+    const Transform *t = cached_transform_;
     if (!t)
     {
         return glm::mat4(1.0f);
@@ -62,18 +62,16 @@ glm::mat4 Camera::ProjectionMatrix() const
 void Camera::OnAttach()
 {
     cached_transform_ = nullptr;
-    if (Owner() && Owner()->SceneContext())
+    if (Owner() && Owner()->GetScene())
     {
-        Owner()->SceneContext()->RegisterCamera(this);
+        Owner()->GetScene()->RegisterCamera(this);
     }
 }
 
 void Camera::OnDetach()
 {
-    if (Owner() && Owner()->SceneContext())
+    if (Owner() && Owner()->GetScene())
     {
-        Owner()->SceneContext()->UnregisterCamera(this);
+        Owner()->GetScene()->UnregisterCamera(this);
     }
 }
-
-

@@ -20,7 +20,6 @@ set(BUILD_SHARED_LIBS OFF CACHE BOOL "Build libraries as STATIC" FORCE)
 
 add_subdirectory(third_party/SOIL2)
 target_compile_definitions(soil2 PUBLIC GL_SILENCE_DEPRECATION)
-
 set(ASSIMP_BUILD_TESTS    OFF CACHE BOOL "" FORCE)
 set(ASSIMP_BUILD_ASSIMP_TOOLS OFF CACHE BOOL "" FORCE)
 set(ASSIMP_BUILD_SAMPLES  OFF CACHE BOOL "" FORCE)
@@ -62,12 +61,13 @@ set(COMMON_LIBS
 # ———————————————————————
 # 4) engine library
 # ———————————————————————
-file(GLOB ENGINE_SOURCES CONFIGURE_DEPENDS
+file(GLOB_RECURSE ENGINE_SOURCES CONFIGURE_DEPENDS
   ${PROJECT_SOURCE_DIR}/src/engine/*.cpp
 )
 add_library(engine STATIC ${ENGINE_SOURCES})
 target_include_directories(engine PUBLIC ${PROJECT_SOURCE_DIR}/src)
 target_link_libraries(engine PUBLIC ${COMMON_LIBS})
+target_compile_definitions(engine PUBLIC GLFW_INCLUDE_NONE)
 
 # ———————————————————————
 # 5) helper to add a demo

@@ -10,7 +10,7 @@
 #include <vector>
 
 // Simple skybox shader: equirectangular 2D texture sampled by direction
-static const char* kSkyVS = R"glsl(
+static const char *kSkyVS = R"glsl(
     #version 410 core
     layout(location=0) in vec3 aPos;
     uniform mat4 uProj;
@@ -23,7 +23,7 @@ static const char* kSkyVS = R"glsl(
     }
 )glsl";
 
-static const char* kSkyFS = R"glsl(
+static const char *kSkyFS = R"glsl(
     #version 410 core
     in vec3 vDir;
     out vec4 FragColor;
@@ -46,20 +46,23 @@ static const char* kSkyFS = R"glsl(
 static std::shared_ptr<Mesh> g_unitCube;
 std::shared_ptr<Mesh> MeshRenderer::CreateUnitCube()
 {
-    if (g_unitCube) return g_unitCube;
+    if (g_unitCube)
+        return g_unitCube;
     // Delegate geometry to MeshCreator so we have proper normals/UVs when needed
     g_unitCube = std::make_shared<Mesh>(MeshCreator::CreateUnitCube());
     return g_unitCube;
 }
 
-void MeshRenderer::OnRender(Renderer& renderer, const glm::mat4& projection, const glm::mat4& view)
+void MeshRenderer::OnRender(Renderer &renderer, const glm::mat4 &projection, const glm::mat4 &view)
 {
     if (render_mode == RenderMode::Skybox)
     {
         const bool hasTexture = (diffuse_texture && diffuse_texture->is_valid());
         // Build rotation-only view matrix (no translation)
         glm::mat4 v = view;
-        v[3][0] = 0.0f; v[3][1] = 0.0f; v[3][2] = 0.0f;
+        v[3][0] = 0.0f;
+        v[3][1] = 0.0f;
+        v[3][2] = 0.0f;
 
         // Depth state for background: disable depth test for guaranteed visibility
         GLboolean wasDepthEnabled = glIsEnabled(GL_DEPTH_TEST);
@@ -69,7 +72,8 @@ void MeshRenderer::OnRender(Renderer& renderer, const glm::mat4& projection, con
         // Culling: disable for robustness (mesh winding might vary)
         GLboolean wasCullEnabled = glIsEnabled(GL_CULL_FACE);
         GLint oldCullFace = GL_BACK;
-        if (wasCullEnabled) glGetIntegerv(GL_CULL_FACE_MODE, &oldCullFace);
+        if (wasCullEnabled)
+            glGetIntegerv(GL_CULL_FACE_MODE, &oldCullFace);
         glDisable(GL_CULL_FACE);
 
         // Lazy init a simple skybox shader if none provided
@@ -108,11 +112,19 @@ void MeshRenderer::OnRender(Renderer& renderer, const glm::mat4& projection, con
         box->Draw();
 
         // Restore depth/cull state
-        if (wasCullEnabled) { glEnable(GL_CULL_FACE); glCullFace(oldCullFace); }
-        else { glDisable(GL_CULL_FACE); }
+        if (wasCullEnabled)
+        {
+            glEnable(GL_CULL_FACE);
+            glCullFace(oldCullFace);
+        }
+        else
+        {
+            glDisable(GL_CULL_FACE);
+        }
         glDepthFunc(GL_LESS);
         glDepthMask(GL_TRUE);
-        if (wasDepthEnabled) glEnable(GL_DEPTH_TEST);
+        if (wasDepthEnabled)
+            glEnable(GL_DEPTH_TEST);
         return;
     }
 
@@ -120,7 +132,7 @@ void MeshRenderer::OnRender(Renderer& renderer, const glm::mat4& projection, con
     {
         cached_transform_ = Owner()->GetComponent<Transform>();
     }
-    const Transform* t = cached_transform_;
+    const Transform *t = cached_transform_;
     glm::mat4 model = t ? t->LocalToWorld() : glm::mat4(1.0f);
     glm::mat4 mvp = projection * view * model;
 
@@ -131,13 +143,14 @@ void MeshRenderer::OnRender(Renderer& renderer, const glm::mat4& projection, con
     glm::vec3 lightDirs[Light::kMaxLights];
     glm::vec3 lightColors[Light::kMaxLights];
     int lightCount = 0;
-    if (Owner() && Owner()->SceneContext())
+    if (Owner() && Owner()->GetScene())
     {
-        const auto& lights = Owner()->SceneContext()->GetLights();
+        const auto &lights = Owner()->GetScene()->GetLights();
         for (size_t i = 0; i < lights.size() && lightCount < Light::kMaxLights; ++i)
         {
-            const Light* light = lights[i];
-            if (!light) continue;
+            const Light *light = lights[i];
+            if (!light)
+                continue;
             const glm::vec3 worldDir = glm::normalize(light->WorldDirection());
             glm::vec3 objectDir = glm::vec3(invModel * glm::vec4(worldDir, 0.0f));
             lightDirs[lightCount] = glm::normalize(objectDir);
@@ -184,10 +197,10 @@ void MeshRenderer::OnRender(Renderer& renderer, const glm::mat4& projection, con
         shader_->set_int("uUseTexture", 0);
     }
     // Set ambient color if Lit and Scene available
-    if (render_mode == RenderMode::Lit && Owner() && Owner()->SceneContext())
+    if (render_mode == RenderMode::Lit && Owner() && Owner()->GetScene())
     {
         shader_->use();
-        const glm::vec3 ambient = Owner()->SceneContext()->GetAmbientColor();
+        const glm::vec3 ambient = Owner()->GetScene()->GetAmbientColor();
         shader_->set_vec3("uAmbient", ambient * material_ambient_multiplier);
     }
 
@@ -220,5 +233,3 @@ void MeshRenderer::OnRender(Renderer& renderer, const glm::mat4& projection, con
         renderer.DrawMesh(*mesh_, *shader_, mvp, lightCount, lightDirs, lightColors);
     }
 }
-
-

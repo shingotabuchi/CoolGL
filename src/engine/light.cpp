@@ -27,18 +27,16 @@ glm::vec3 Light::WorldDirection() const
 void Light::OnAttach()
 {
     cached_transform_ = nullptr;
-    if (Owner() && Owner()->SceneContext())
+    if (Owner() && Owner()->GetScene())
     {
-        Owner()->SceneContext()->RegisterLight(this);
+        Owner()->GetScene()->RegisterLight(this);
     }
 }
 
 void Light::OnDetach()
 {
-    if (Owner() && Owner()->SceneContext())
+    if (Owner() && Owner()->GetScene())
     {
-        Owner()->SceneContext()->UnregisterLight(this);
+        Owner()->GetScene()->UnregisterLight(this);
     }
 }
-
-

@@ -15,19 +15,19 @@ class Mesh
 {
 public:
     Mesh() = default;
-    Mesh(const std::vector<MeshVertex>& vertices, const std::vector<unsigned int>& indices);
+    Mesh(const std::vector<MeshVertex> &vertices, const std::vector<unsigned int> &indices);
 
-    Mesh(const Mesh&) = delete;
-    Mesh& operator=(const Mesh&) = delete;
-    Mesh(Mesh&& other) noexcept;
-    Mesh& operator=(Mesh&& other) noexcept;
+    Mesh(const Mesh &) = delete;
+    Mesh &operator=(const Mesh &) = delete;
+    Mesh(Mesh &&other) noexcept;
+    Mesh &operator=(Mesh &&other) noexcept;
     ~Mesh();
 
     void Bind() const;
     void Draw() const;
 
 private:
-    void CreateBuffers(const std::vector<MeshVertex>& vertices, const std::vector<unsigned int>& indices);
+    void CreateBuffers(const std::vector<MeshVertex> &vertices, const std::vector<unsigned int> &indices);
 
 private:
     GLuint vao_ = 0;
@@ -36,5 +36,3 @@ private:
     GLsizei index_count_ = 0;
     // Future: consider primitive restart or 32-bit indices based on size
 };
-
-
