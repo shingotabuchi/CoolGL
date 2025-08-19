@@ -82,5 +82,4 @@ private:
     std::shared_ptr<Shader> shader_{};
     std::shared_ptr<Material> material_{};
     Transform *cached_transform_ = nullptr;
-    Renderer::CachedLightState cached_light_state_{};
 };

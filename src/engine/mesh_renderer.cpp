@@ -139,33 +139,6 @@ void MeshRenderer::OnRender(Renderer &renderer, const glm::mat4 &projection, con
     // Precompute inverse(model) for transforming directions to object space
     const glm::mat4 invModel = glm::inverse(model);
 
-    // Fetch lights from scene and transform their world directions into object space
-    glm::vec3 lightDirs[Light::kMaxLights];
-    glm::vec3 lightColors[Light::kMaxLights];
-    int lightCount = 0;
-    if (Owner() && Owner()->GetScene())
-    {
-        const auto &lights = Owner()->GetScene()->GetLights();
-        for (size_t i = 0; i < lights.size() && lightCount < Light::kMaxLights; ++i)
-        {
-            const Light *light = lights[i];
-            if (!light)
-                continue;
-            const glm::vec3 worldDir = glm::normalize(light->WorldDirection());
-            glm::vec3 objectDir = glm::vec3(invModel * glm::vec4(worldDir, 0.0f));
-            lightDirs[lightCount] = glm::normalize(objectDir);
-            lightColors[lightCount] = light->color * light->intensity;
-            ++lightCount;
-        }
-    }
-    if (lightCount == 0)
-    {
-        // Fallback to a default light if none present
-        lightDirs[0] = glm::normalize(glm::vec3(0.0f, -1.0f, 0.0f));
-        lightColors[0] = light_color;
-        lightCount = 1;
-    }
-
     // Resolve shader and textures from Material if present
     if (material_)
     {
@@ -227,9 +200,8 @@ void MeshRenderer::OnRender(Renderer &renderer, const glm::mat4 &projection, con
         const glm::vec3 cameraWorldPos = glm::vec3(invView * glm::vec4(0.0f, 0.0f, 0.0f, 1.0f));
         const glm::vec3 objectWorldPos = glm::vec3(model * glm::vec4(0.0f, 0.0f, 0.0f, 1.0f));
         const glm::vec3 worldViewDir = glm::normalize(cameraWorldPos - objectWorldPos);
-        const glm::vec3 objectViewDir = glm::normalize(glm::vec3(invModel * glm::vec4(worldViewDir, 0.0f)));
-        shader_->set_vec3("uViewDir", objectViewDir);
+        shader_->set_vec3("uViewDir", worldViewDir);
 
-        renderer.DrawMesh(*mesh_, *shader_, cached_light_state_, mvp, lightCount, lightDirs, lightColors);
+        renderer.DrawMesh(*mesh_, *shader_, mvp);
     }
 }

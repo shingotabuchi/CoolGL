@@ -11,24 +11,13 @@ public:
     const static int SHADOW_MAP_WIDTH = 2048;
     const static int SHADOW_MAP_HEIGHT = 2048;
 
-    struct CachedLightState
-    {
-        int count = -1;
-        glm::vec3 dirs[Light::kMaxLights];
-        glm::vec3 colors[Light::kMaxLights];
-        GLuint program = 0;
-    };
-
     Renderer();
 
     void BeginFrame(float r, float g, float b, float a);
+    void UpdateLightState(int light_count, const glm::vec3 *light_dirs, const glm::vec3 *light_colors);
     void DrawMesh(const Mesh &mesh,
                   const Shader &shader,
-                  CachedLightState &light_state,
-                  const glm::mat4 &mvp,
-                  int light_count,
-                  const glm::vec3 *light_dirs_object_space,
-                  const glm::vec3 *light_colors);
+                  const glm::mat4 &mvp);
 
     // Helper to draw only a mesh with a shader when no lighting is needed
     void DrawSimple(const Mesh &mesh,
@@ -45,5 +34,15 @@ public:
     // void DrawMeshForDepth(const Mesh &mesh, const glm::mat4 &mvp);
 
 private:
+    struct CachedLightState
+    {
+        int count = -1;
+        glm::vec3 dirs[Light::kMaxLights];
+        glm::vec3 colors[Light::kMaxLights];
+        bool has_changed = false;
+    };
+
+    static CachedLightState s_cached_light_state_;
+
     std::unique_ptr<Shader> _depthShader;
 };

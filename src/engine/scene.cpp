@@ -46,8 +46,25 @@ void Scene::Render(Renderer &renderer)
     const glm::mat4 projection = activeCamera->ProjectionMatrix();
     const glm::mat4 view = activeCamera->ViewMatrix();
 
+    // Fetch lights from scene and transform their world directions into object space
+    glm::vec3 light_dirs[Light::kMaxLights];
+    glm::vec3 light_colors[Light::kMaxLights];
+    int light_count = 0;
+    const auto &lights = GetLights();
+    for (size_t i = 0; i < lights.size() && light_count < Light::kMaxLights; ++i)
+    {
+        const Light *light = lights[i];
+        if (!light)
+            continue;
+        light_dirs[light_count] = glm::normalize(light->WorldDirection());
+        light_colors[light_count] = light->color * light->intensity;
+        ++light_count;
+    }
+    renderer.UpdateLightState(light_count, light_dirs, light_colors);
+
     // Clear using sky color so sky acts as background
     renderer.BeginFrame(clear_color_.r, clear_color_.g, clear_color_.b, 1.0f);
+
     // Render skybox first (if any)
     if (skybox_object_)
     {

@@ -6,13 +6,13 @@ layout(location = 2) in vec2 aUV;
 
 uniform mat4 uMVP;
 
-out vec3 vNormal; // object-space normal to match engine light dirs
+out vec3 vNormal; // world-space normal
 out vec2 vUV;
 
 void main()
 {
     gl_Position = uMVP * vec4(aPos, 1.0);
-    vNormal = aNormal;
+    vNormal = uMVP * vec4(aNormal, 1.0);
     vUV = aUV;
 }
 

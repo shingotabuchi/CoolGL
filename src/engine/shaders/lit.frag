@@ -2,11 +2,11 @@
 
 const int MAX_LIGHTS = 4;
 
-in vec3 vNormal; // object-space
+in vec3 vNormal; // world-space
 in vec2 vUV;
 out vec4 FragColor;
 
-// Light uniforms (object-space incoming light directions)
+// Light uniforms (world-space incoming light directions)
 uniform int uLightCount;
 uniform vec3 uLightDirs[MAX_LIGHTS];
 uniform vec3 uLightColors[MAX_LIGHTS];
@@ -17,7 +17,7 @@ uniform sampler2D uAlbedo;
 uniform int uUseTexture;
 uniform vec3 uColor;       // tint
 uniform float uSmoothness; // [0..1]
-uniform vec3 uViewDir;     // object-space view dir (towards camera)
+uniform vec3 uViewDir;     // world-space view dir (towards camera)
 
 void main()
 {

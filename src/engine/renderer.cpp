@@ -2,6 +2,8 @@
 #include <glad/glad.h>
 #include <iostream>
 
+Renderer::CachedLightState Renderer::s_cached_light_state_{};
+
 // A simple shader for rendering depth only
 static const char *kDepthVS = R"glsl(
     #version 410 core
@@ -34,17 +36,40 @@ void Renderer::BeginFrame(float r, float g, float b, float a)
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 }
 
-// void Renderer::UpdateLightState(int light_count, const glm::vec3 *light_dirs_object_space, const glm::vec3 *light_colors)
-// {
-// }
+void Renderer::UpdateLightState(int light_count, const glm::vec3 *light_dirs, const glm::vec3 *light_colors)
+{
+    s_cached_light_state_.has_changed = s_cached_light_state_.count != light_count;
+
+    for (int i = 0; i < light_count && !s_cached_light_state_.has_changed; ++i)
+    {
+        const glm::vec3 diff = s_cached_light_state_.dirs[i] - light_dirs[i];
+        if (glm::dot(diff, diff) > 1e-12f)
+        {
+            s_cached_light_state_.has_changed = true;
+        }
+    }
+    for (int i = 0; i < light_count && !s_cached_light_state_.has_changed; ++i)
+    {
+        const glm::vec3 diff = s_cached_light_state_.colors[i] - light_colors[i];
+        if (glm::dot(diff, diff) > 1e-12f)
+        {
+            s_cached_light_state_.has_changed = true;
+        }
+    }
+
+    if (s_cached_light_state_.has_changed)
+    {
+        s_cached_light_state_.count = light_count;
+        for (int i = 0; i < light_count; ++i)
+            s_cached_light_state_.dirs[i] = light_dirs[i];
+        for (int i = 0; i < light_count; ++i)
+            s_cached_light_state_.colors[i] = light_colors[i];
+    }
+}
 
 void Renderer::DrawMesh(const Mesh &mesh,
                         const Shader &shader,
-                        CachedLightState &light_state,
-                        const glm::mat4 &mvp,
-                        int light_count,
-                        const glm::vec3 *light_dirs_object_space,
-                        const glm::vec3 *light_colors)
+                        const glm::mat4 &mvp)
 {
     shader.use();
     const GLint locMVP = shader.get_uniform_location_cached("uMVP");
@@ -53,83 +78,15 @@ void Renderer::DrawMesh(const Mesh &mesh,
     const GLint locLightColors0 = shader.get_uniform_location_cached("uLightColors[0]");
     shader.set_mat4(locMVP, mvp);
 
-    // Avoid redundant uniform updates for lights when possible
-    const GLuint currentProgram = shader.id();
-    bool programChanged = (light_state.program != currentProgram);
-    bool countChanged = (light_state.count != light_count) || programChanged;
-    bool dirsChanged = programChanged || countChanged;
-    bool colorsChanged = programChanged || countChanged;
-
-    if (!programChanged && !countChanged)
+    if (s_cached_light_state_.has_changed)
     {
-        // Compare arrays only up to light_count
-        for (int i = 0; i < light_count && !dirsChanged; ++i)
-        {
-            const glm::vec3 diff = light_state.dirs[i] - light_dirs_object_space[i];
-            if (glm::dot(diff, diff) > 1e-12f)
-            {
-                dirsChanged = true;
-            }
-        }
-        for (int i = 0; i < light_count && !colorsChanged; ++i)
-        {
-            const glm::vec3 diff = light_state.colors[i] - light_colors[i];
-            if (glm::dot(diff, diff) > 1e-12f)
-            {
-                colorsChanged = true;
-            }
-        }
+        std::cout << "ayo" << std::endl;
+        auto count = s_cached_light_state_.count;
+        shader.set_int(locLightCount, count);
+        shader.set_vec3_array(locLightDirs0, s_cached_light_state_.dirs, count);
+        shader.set_vec3_array(locLightColors0, s_cached_light_state_.colors, count);
     }
-
-    if (countChanged)
-    {
-        shader.set_int(locLightCount, light_count);
-        light_state.count = light_count;
-    }
-    if (dirsChanged)
-    {
-        shader.set_vec3_array(locLightDirs0, light_dirs_object_space, light_count);
-        for (int i = 0; i < light_count; ++i)
-            light_state.dirs[i] = light_dirs_object_space[i];
-    }
-    if (colorsChanged)
-    {
-        shader.set_vec3_array(locLightColors0, light_colors, light_count);
-        for (int i = 0; i < light_count; ++i)
-            light_state.colors[i] = light_colors[i];
-    }
-    light_state.program = currentProgram;
 
     mesh.Bind();
     mesh.Draw();
 }
-
-// void Renderer::InitializeShadowMap()
-// {
-//     // Create the depth texture
-//     glGenTextures(1, &m_shadowMapTexture);
-//     glBindTexture(GL_TEXTURE_2D, m_shadowMapTexture);
-//     glTexImage2D(GL_TEXTURE_2D, 0, GL_DEPTH_COMPONENT, SHADOW_MAP_WIDTH, SHADOW_MAP_HEIGHT, 0, GL_DEPTH_COMPONENT, GL_FLOAT, NULL);
-//     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
-//     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
-//     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_BORDER);
-//     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_BORDER);
-//     float borderColor[] = {1.0f, 1.0f, 1.0f, 1.0f}; // Areas outside map are not in shadow
-//     glTexParameterfv(GL_TEXTURE_2D, GL_TEXTURE_BORDER_COLOR, borderColor);
-
-//     // Create the FBO
-//     glGenFramebuffers(1, &m_shadowMapFBO);
-//     glBindFramebuffer(GL_FRAMEBUFFER, m_shadowMapFBO);
-//     glFramebufferTexture2D(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_TEXTURE_2D, m_shadowMapTexture, 0);
-//     glDrawBuffer(GL_NONE);
-//     glReadBuffer(GL_NONE);
-
-//     if (glCheckFramebufferStatus(GL_FRAMEBUFFER) != GL_FRAMEBUFFER_COMPLETE)
-//     {
-//         // Handle error
-//     }
-//     glBindFramebuffer(GL_FRAMEBUFFER, 0);
-
-//     // Create the depth shader
-//     m_depthShader = std::make_unique<Shader>(kDepthVS, kDepthFS);
-// }
