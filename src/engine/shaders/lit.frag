@@ -34,7 +34,7 @@ void main()
     vec3 accum = uAmbient * baseColor;
     for (int i = 0; i < uLightCount; ++i)
     {
-        vec3 L = normalize(uLightDirs[i]); // incoming light dir
+        vec3 L = normalize(-uLightDirs[i]); // incoming light dir
         float ndotl = max(dot(N, L), 0.0);
         vec3 diffuse = ndotl * uLightColors[i] * baseColor;
 

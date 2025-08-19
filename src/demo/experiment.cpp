@@ -76,7 +76,7 @@ public:
         GameObject &light_obj = scene_.CreateObject();
         auto *light_transform = light_obj.AddComponent<Transform>();
         light_transform->position = glm::vec3(0.0f, 3.0f, 0.0f);
-        light_transform->rotation_euler = glm::vec3(45.0f, -120.0f, 0.0f);
+        light_transform->rotation_euler = glm::vec3(-45.0f, 60.0f, 0.0f);
         auto *light = light_obj.AddComponent<Light>();
         light->color = glm::vec3(1.0f, 0.9568627f, 0.8392157f);
         light->intensity = 1.0f;
