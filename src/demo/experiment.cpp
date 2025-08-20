@@ -66,8 +66,8 @@ public:
         // Create camera object (must exist to render)
         GameObject &cam_obj = scene_.CreateObject();
         auto *cam_transform = cam_obj.AddComponent<Transform>();
-        cam_transform->position = glm::vec3(0.0f, 2.0f, -7.0f);
-        cam_transform->rotation_euler = glm::vec3(-8.0f, 180.0f, 0.0f);
+        cam_transform->position = glm::vec3(0.0f, 1.49f, -3.26f);
+        cam_transform->rotation_euler = glm::vec3(0.0f, 180.0f, 0.0f);
         auto *camera = cam_obj.AddComponent<Camera>();
         camera->field_of_view_degrees = 60.0f;
 
@@ -76,8 +76,8 @@ public:
         // Create a directional light object
         GameObject &light_obj = scene_.CreateObject();
         auto *light_transform = light_obj.AddComponent<Transform>();
-        light_transform->position = glm::vec3(0.0f, 3.0f, 0.0f);
-        light_transform->rotation_euler = glm::vec3(-45.0f, 60.0f, 0.0f);
+        light_transform->position = glm::vec3(0.0f, 5.0f, 2.0f);          // Higher and more forward
+        light_transform->rotation_euler = glm::vec3(-60.0f, 30.0f, 0.0f); // Steeper angle
         auto *light = light_obj.AddComponent<Light>();
         light->color = glm::vec3(1.0f, 0.9568627f, 0.8392157f);
         light->intensity = 1.0f;
@@ -116,7 +116,8 @@ protected:
         if (shadowCastingLight)
         {
             glm::mat4 lightSpaceMatrix = shadowCastingLight->GetLightSpaceMatrix();
-            renderer.BeginShadowPass(lightSpaceMatrix);
+            glm::vec3 lightDir = shadowCastingLight->WorldDirection();
+            renderer.BeginShadowPass(lightSpaceMatrix, lightDir);
 
             // Render all shadow-casting objects to the depth map
             for (auto &gameObject : scene_.GetGameObjects())
@@ -158,7 +159,16 @@ int main()
     ExperimentApp app(800, 800);
     app.renderer = Renderer{};
     app.renderer.use_shadows = true;
-    app.renderer.InitializeShadowMap(800, 800);
+
+    // Configure high-quality shadow settings
+    app.renderer.shadow_settings.shadow_map_size = 2048; // Higher resolution
+    app.renderer.shadow_settings.bias = 0.0002f;         // Slightly higher bias for self-shadowing
+    app.renderer.shadow_settings.pcf_samples = 16;       // Maximum samples for best quality
+    app.renderer.shadow_settings.use_advanced_shadows = true;
+
+    // Initialize with high-res shadow map
+    app.renderer.InitializeShadowMap(app.renderer.shadow_settings.shadow_map_size,
+                                     app.renderer.shadow_settings.shadow_map_size);
     app.Run();
     return 0;
 }

@@ -203,6 +203,10 @@ void MeshRenderer::OnRender(Renderer &renderer, const glm::mat4 &projection, con
             glBindTexture(GL_TEXTURE_2D, renderer.GetShadowMapTexture());
             shader_->set_int("uShadowMap", 1); // Tell shader to look at texture unit 1
 
+            // Pass shadow quality settings to shader
+            shader_->set_float("uShadowBias", renderer.shadow_settings.bias);
+            shader_->set_int("uPCFSamples", renderer.shadow_settings.pcf_samples);
+
             // Don't forget to re-activate texture unit 0 if you use it for albedo
             glActiveTexture(GL_TEXTURE0);
         }

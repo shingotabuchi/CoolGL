@@ -9,6 +9,17 @@ class Renderer
 {
 public:
     bool use_shadows = false;
+
+    // Shadow quality settings
+    struct ShadowSettings
+    {
+        float bias = 0.005f;
+        int pcf_samples = 9;
+        int shadow_map_size = 2048;
+        bool use_advanced_shadows = false;
+        bool use_contact_hardening = false;
+    } shadow_settings;
+
     Renderer();
 
     void BeginFrame(float r, float g, float b, float a);
@@ -27,7 +38,7 @@ public:
 
     void InitializeShadowMap(int width, int height);
     void SetViewport(int width, int height);
-    void BeginShadowPass(const glm::mat4 &lightSpaceMatrix);
+    void BeginShadowPass(const glm::mat4 &lightSpaceMatrix, const glm::vec3 &lightDir);
     void EndShadowPass();
     void DrawMeshForDepth(const Mesh &mesh, const glm::mat4 &mvp);
     GLuint GetShadowMapTexture() const { return m_shadowMapTexture; }
@@ -50,4 +61,5 @@ private:
     int m_shadowMapHeight = 0;
     std::unique_ptr<Shader> m_depthShader;
     glm::mat4 m_lightSpaceMatrix;
+    glm::vec3 m_currentLightDir;
 };

@@ -4,20 +4,29 @@
 
 Renderer::CachedLightState Renderer::s_cached_light_state_{};
 
-// A simple shader for rendering depth only
+// Enhanced depth shader with minimal bias
 static const char *kDepthVS = R"glsl(
     #version 410 core
     layout (location = 0) in vec3 aPos;
+    layout (location = 3) in mat4 aInstanceMatrix;
+    
     uniform mat4 uMVP; // LightSpaceMatrix * ModelMatrix
+    uniform mat4 uModel;
+    uniform bool u_isInstanced;
+    
     void main() {
+        mat4 finalModelMatrix = u_isInstanced ? aInstanceMatrix : uModel;
         gl_Position = uMVP * vec4(aPos, 1.0);
     }
 )glsl";
 
 static const char *kDepthFS = R"glsl(
     #version 410 core
+    
     void main() {
-        // No color output needed
+        // Use very minimal bias in depth pass
+        // Slightly reduce depth to ensure self-shadowing works properly
+        gl_FragDepth = gl_FragCoord.z - 0.0001;
     }
 )glsl";
 
@@ -116,11 +125,18 @@ void Renderer::InitializeShadowMap(int width, int height)
     // Create the depth texture
     glGenTextures(1, &m_shadowMapTexture);
     glBindTexture(GL_TEXTURE_2D, m_shadowMapTexture);
-    glTexImage2D(GL_TEXTURE_2D, 0, GL_DEPTH_COMPONENT, width, height, 0, GL_DEPTH_COMPONENT, GL_FLOAT, NULL);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+    glTexImage2D(GL_TEXTURE_2D, 0, GL_DEPTH_COMPONENT24, width, height, 0, GL_DEPTH_COMPONENT, GL_FLOAT, NULL);
+
+    // Enable hardware PCF (Percentage Closer Filtering) for smooth shadows
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_BORDER);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_BORDER);
+
+    // Enable depth comparison for shadow testing
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_COMPARE_MODE, GL_COMPARE_REF_TO_TEXTURE);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_COMPARE_FUNC, GL_LEQUAL);
+
     float borderColor[] = {1.0f, 1.0f, 1.0f, 1.0f}; // Areas outside map are not in shadow
     glTexParameterfv(GL_TEXTURE_2D, GL_TEXTURE_BORDER_COLOR, borderColor);
 
@@ -141,9 +157,10 @@ void Renderer::InitializeShadowMap(int width, int height)
     m_depthShader = std::make_unique<Shader>(kDepthVS, kDepthFS);
 }
 
-void Renderer::BeginShadowPass(const glm::mat4 &lightSpaceMatrix)
+void Renderer::BeginShadowPass(const glm::mat4 &lightSpaceMatrix, const glm::vec3 &lightDir)
 {
     m_lightSpaceMatrix = lightSpaceMatrix; // Cache it for drawing
+    m_currentLightDir = lightDir;          // Cache light direction
     glViewport(0, 0, m_shadowMapWidth, m_shadowMapHeight);
     glBindFramebuffer(GL_FRAMEBUFFER, m_shadowMapFBO);
     glClear(GL_DEPTH_BUFFER_BIT);
@@ -166,8 +183,12 @@ void Renderer::EndShadowPass()
 void Renderer::DrawMeshForDepth(const Mesh &mesh, const glm::mat4 &modelMatrix)
 {
     glm::mat4 mvp = m_lightSpaceMatrix * modelMatrix;
-    const GLint locMVP = m_depthShader->get_uniform_location_cached("uMVP");
-    m_depthShader->set_mat4(locMVP, mvp);
+
+    // Set uniforms for the depth shader
+    m_depthShader->set_mat4("uMVP", mvp);
+    m_depthShader->set_mat4("uModel", modelMatrix);
+    m_depthShader->set_int("u_isInstanced", 0);
+
     mesh.Bind();
     mesh.Draw();
 }
