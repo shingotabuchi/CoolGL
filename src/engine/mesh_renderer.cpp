@@ -192,17 +192,20 @@ void MeshRenderer::OnRender(Renderer &renderer, const glm::mat4 &projection, con
         // Set material uniforms expected by the lit shader
         shader_->use();
 
-        const Light *shadowLight = Owner()->GetScene()->GetLights()[0];
-        glm::mat4 lightSpaceMatrix = shadowLight->GetLightSpaceMatrix();
-        shader_->set_mat4("uLightSpaceMatrix", lightSpaceMatrix);
+        if (renderer.use_shadows)
+        {
+            const Light *shadowLight = Owner()->GetScene()->GetLights()[0];
+            glm::mat4 lightSpaceMatrix = shadowLight->GetLightSpaceMatrix();
+            shader_->set_mat4("uLightSpaceMatrix", lightSpaceMatrix);
 
-        // Bind the shadow map texture to a free texture unit (e.g., unit 1)
-        glActiveTexture(GL_TEXTURE1); // Use a different texture unit
-        glBindTexture(GL_TEXTURE_2D, renderer.GetShadowMapTexture());
-        shader_->set_int("uShadowMap", 1); // Tell shader to look at texture unit 1
+            // Bind the shadow map texture to a free texture unit (e.g., unit 1)
+            glActiveTexture(GL_TEXTURE1); // Use a different texture unit
+            glBindTexture(GL_TEXTURE_2D, renderer.GetShadowMapTexture());
+            shader_->set_int("uShadowMap", 1); // Tell shader to look at texture unit 1
 
-        // Don't forget to re-activate texture unit 0 if you use it for albedo
-        glActiveTexture(GL_TEXTURE0);
+            // Don't forget to re-activate texture unit 0 if you use it for albedo
+            glActiveTexture(GL_TEXTURE0);
+        }
 
         const glm::vec3 colorToUse = material_ ? material_->color : color;
         const float smoothnessToUse = material_ ? material_->smoothness : smoothness;

@@ -157,6 +157,7 @@ int main()
 {
     ExperimentApp app(800, 800);
     app.renderer = Renderer{};
+    app.renderer.use_shadows = true;
     app.renderer.InitializeShadowMap(800, 800);
     app.Run();
     return 0;

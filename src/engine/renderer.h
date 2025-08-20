@@ -8,6 +8,7 @@
 class Renderer
 {
 public:
+    bool use_shadows = false;
     Renderer();
 
     void BeginFrame(float r, float g, float b, float a);
