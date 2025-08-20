@@ -1,6 +1,7 @@
 #include "mesh.h"
 
 Mesh::Mesh(const std::vector<MeshVertex> &vertices, const std::vector<unsigned int> &indices)
+    : vertices(vertices), indices(indices)
 {
     CreateBuffers(vertices, indices);
 }

@@ -15,6 +15,8 @@ class Mesh
 {
 public:
     int instance_id;
+    std::vector<MeshVertex> vertices;
+    std::vector<unsigned int> indices;
     Mesh() = default;
     Mesh(const std::vector<MeshVertex> &vertices, const std::vector<unsigned int> &indices);
 
