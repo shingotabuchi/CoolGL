@@ -34,5 +34,3 @@ private:
     std::shared_ptr<Shader> shader_{};
     std::shared_ptr<Texture> albedo_texture_{};
 };
-
-

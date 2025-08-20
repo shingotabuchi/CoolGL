@@ -39,5 +39,3 @@ bool Material::EnsureResourcesLoaded()
 
     return static_cast<bool>(shader_);
 }
-
-
