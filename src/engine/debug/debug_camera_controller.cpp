@@ -67,7 +67,7 @@ void DebugCameraController::OnUpdate(float timeSeconds)
         const glm::mat3 rot = glm::mat3_cast(current_orientation);
         const glm::vec3 cam_right = glm::normalize(rot * glm::vec3(1, 0, 0));
         const glm::vec3 cam_up = glm::normalize(rot * glm::vec3(0, 1, 0));
-        const glm::vec3 pan_delta = cam_right * static_cast<float>(dx) * pan_sensitivity + cam_up * static_cast<float>(-dy) * pan_sensitivity;
+        const glm::vec3 pan_delta = cam_right * static_cast<float>(-dx) * pan_sensitivity + cam_up * static_cast<float>(dy) * pan_sensitivity;
         cached_transform_->position += pan_delta;
     }
 

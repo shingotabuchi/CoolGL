@@ -28,8 +28,9 @@ Window::Window(int width, int height, const char *title)
     glfwMakeContextCurrent(glfw_window_);
     // Store pointer to this Window for callbacks
     glfwSetWindowUserPointer(glfw_window_, this);
-    // Enable V-Sync by default to cap FPS and avoid CPU spin; can be made configurable
-    glfwSwapInterval(1);
+    // // Enable V-Sync by default to cap FPS and avoid CPU spin; can be made configurable
+    // glfwSwapInterval(1);
+    glfwSwapInterval(0);
     glfwSetFramebufferSizeCallback(glfw_window_, FramebufferSizeCallback);
 
     if (!gladLoadGLLoader((GLADloadproc)glfwGetProcAddress))

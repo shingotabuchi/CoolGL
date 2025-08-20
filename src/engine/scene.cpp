@@ -76,6 +76,8 @@ void Scene::Render(Renderer &renderer)
     {
         obj->Render(renderer, projection, view);
     }
+
+    // renderer.DrawInstanced(projection, view);
 }
 
 bool Scene::SetSkyFromEquirect(const std::string &path)

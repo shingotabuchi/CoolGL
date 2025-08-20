@@ -16,8 +16,7 @@ public:
     void BeginFrame(float r, float g, float b, float a);
     void UpdateLightState(int light_count, const glm::vec3 *light_dirs, const glm::vec3 *light_colors, const glm::vec3 cam_pos);
     void DrawMesh(const Mesh &mesh,
-                  const Shader &shader,
-                  const glm::mat4 &mvp);
+                  const Shader &shader);
 
     // Helper to draw only a mesh with a shader when no lighting is needed
     void DrawSimple(const Mesh &mesh,

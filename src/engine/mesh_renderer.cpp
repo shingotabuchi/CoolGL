@@ -179,12 +179,13 @@ void MeshRenderer::OnRender(Renderer &renderer, const glm::mat4 &projection, con
 
     if (render_mode == RenderMode::Unlit)
     {
-        // For unlit, ignore light uniforms and just draw mesh with shader using uMVP
-        shader_->use();
-        const GLint locMVP = shader_->get_uniform_location_cached("uMVP");
-        shader_->set_mat4(locMVP, mvp);
-        mesh_->Bind();
-        mesh_->Draw();
+        std::cout << "nah" << std::endl;
+        // // For unlit, ignore light uniforms and just draw mesh with shader using uMVP
+        // shader_->use();
+        // const GLint locMVP = shader_->get_uniform_location_cached("uMVP");
+        // shader_->set_mat4(locMVP, mvp);
+        // mesh_->Bind();
+        // mesh_->Draw();
     }
     else
     {
@@ -195,6 +196,9 @@ void MeshRenderer::OnRender(Renderer &renderer, const glm::mat4 &projection, con
         shader_->set_vec3("uColor", colorToUse);
         shader_->set_float("uSmoothness", smoothnessToUse);
         shader_->set_mat4("uModel", model);
-        renderer.DrawMesh(*mesh_, *shader_, mvp);
+        shader_->set_mat4("uView", view);
+        shader_->set_mat4("uProjection", projection);
+        shader_->set_int("u_isInstanced", instance_id > 0);
+        renderer.DrawMesh(*mesh_, *shader_);
     }
 }

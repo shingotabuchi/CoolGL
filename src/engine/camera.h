@@ -18,7 +18,7 @@ public:
     // Public properties (Unity-like simplicity)
     float field_of_view_degrees = 45.0f; // vertical FOV
     float near_clip = 0.1f;
-    float far_clip = 100.0f;
+    float far_clip = 2000.0f;
     float aspect_ratio = 1.0f;                                    // manual aspect when not syncing to window
     bool sync_aspect_with_window = true;                          // when true, derive aspect from current viewport
     ProjectionType projection_type = ProjectionType::Perspective; // default perspective

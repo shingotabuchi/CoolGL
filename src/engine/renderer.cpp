@@ -77,15 +77,12 @@ void Renderer::UpdateLightState(int light_count, const glm::vec3 *light_dirs, co
 }
 
 void Renderer::DrawMesh(const Mesh &mesh,
-                        const Shader &shader,
-                        const glm::mat4 &mvp)
+                        const Shader &shader)
 {
     shader.use();
-    const GLint locMVP = shader.get_uniform_location_cached("uMVP");
     const GLint locLightCount = shader.get_uniform_location_cached("uLightCount");
     const GLint locLightDirs0 = shader.get_uniform_location_cached("uLightDirs[0]");
     const GLint locLightColors0 = shader.get_uniform_location_cached("uLightColors[0]");
-    shader.set_mat4(locMVP, mvp);
 
     if (s_cached_light_state_.has_changed)
     {

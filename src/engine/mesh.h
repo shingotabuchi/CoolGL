@@ -23,8 +23,11 @@ public:
     Mesh &operator=(Mesh &&other) noexcept;
     ~Mesh();
 
+    void CreateInstanceBuffer(const std::vector<glm::mat4> &model_matrices);
+
     void Bind() const;
     void Draw() const;
+    void DrawInstanced(GLsizei instance_count) const;
 
 private:
     void CreateBuffers(const std::vector<MeshVertex> &vertices, const std::vector<unsigned int> &indices);
@@ -33,6 +36,7 @@ private:
     GLuint vao_ = 0;
     GLuint vbo_ = 0;
     GLuint ebo_ = 0;
+    GLuint instance_vbo_ = 0;
     GLsizei index_count_ = 0;
     // Future: consider primitive restart or 32-bit indices based on size
 };

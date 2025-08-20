@@ -6,7 +6,7 @@
 #include <fstream>
 #include <sstream>
 
-static void ThrowIfShaderError(GLuint shader, const char* stage)
+static void ThrowIfShaderError(GLuint shader, const char *stage)
 {
     GLint success = 0;
     glGetShaderiv(shader, GL_COMPILE_STATUS, &success);
@@ -34,7 +34,7 @@ static void ThrowIfLinkError(GLuint program)
     }
 }
 
-Shader::Shader(const char* vertex_source, const char* fragment_source)
+Shader::Shader(const char *vertex_source, const char *fragment_source)
 {
     GLuint vs = compile(GL_VERTEX_SHADER, vertex_source);
     GLuint fs = compile(GL_FRAGMENT_SHADER, fragment_source);
@@ -43,12 +43,12 @@ Shader::Shader(const char* vertex_source, const char* fragment_source)
     glDeleteShader(fs);
 }
 
-Shader::Shader(Shader&& other) noexcept : program_id_(other.program_id_)
+Shader::Shader(Shader &&other) noexcept : program_id_(other.program_id_)
 {
     other.program_id_ = 0;
 }
 
-Shader& Shader::operator=(Shader&& other) noexcept
+Shader &Shader::operator=(Shader &&other) noexcept
 {
     if (this != &other)
     {
@@ -71,7 +71,7 @@ Shader::~Shader()
     }
 }
 
-GLuint Shader::compile(GLenum type, const char* source)
+GLuint Shader::compile(GLenum type, const char *source)
 {
     GLuint shader = glCreateShader(type);
     glShaderSource(shader, 1, &source, nullptr);
@@ -89,9 +89,10 @@ void Shader::link(GLuint vertex_shader, GLuint fragment_shader)
     ThrowIfLinkError(program_id_);
 }
 
-Shader Shader::FromFiles(const std::string& vertex_path, const std::string& fragment_path)
+Shader Shader::FromFiles(const std::string &vertex_path, const std::string &fragment_path)
 {
-    auto read_file = [](const std::string& path) -> std::string {
+    auto read_file = [](const std::string &path) -> std::string
+    {
         std::ifstream file(path, std::ios::in | std::ios::binary);
         if (!file)
         {
@@ -117,31 +118,31 @@ void Shader::use() const
     }
 }
 
-void Shader::set_mat4(const char* name, const glm::mat4& value) const
+void Shader::set_mat4(const char *name, const glm::mat4 &value) const
 {
     GLint loc = get_uniform_location_cached(name);
     glUniformMatrix4fv(loc, 1, GL_FALSE, glm::value_ptr(value));
 }
 
-void Shader::set_vec3(const char* name, const glm::vec3& value) const
+void Shader::set_vec3(const char *name, const glm::vec3 &value) const
 {
     GLint loc = get_uniform_location_cached(name);
     glUniform3fv(loc, 1, glm::value_ptr(value));
 }
 
-void Shader::set_float(const char* name, float value) const
+void Shader::set_float(const char *name, float value) const
 {
     GLint loc = get_uniform_location_cached(name);
     glUniform1f(loc, value);
 }
 
-void Shader::set_int(const char* name, int value) const
+void Shader::set_int(const char *name, int value) const
 {
     GLint loc = get_uniform_location_cached(name);
     glUniform1i(loc, value);
 }
 
-GLint Shader::get_uniform_location_cached(const char* name) const
+GLint Shader::get_uniform_location_cached(const char *name) const
 {
     auto it = uniform_location_cache_.find(name);
     if (it != uniform_location_cache_.end())
@@ -153,21 +154,21 @@ GLint Shader::get_uniform_location_cached(const char* name) const
     return loc;
 }
 
-void Shader::set_mat4(GLint location, const glm::mat4& value) const
+void Shader::set_mat4(GLint location, const glm::mat4 &value) const
 {
     glUniformMatrix4fv(location, 1, GL_FALSE, glm::value_ptr(value));
 }
 
-void Shader::set_vec3(GLint location, const glm::vec3& value) const
+void Shader::set_vec3(GLint location, const glm::vec3 &value) const
 {
     glUniform3fv(location, 1, glm::value_ptr(value));
 }
 
-void Shader::set_vec3_array(GLint location, const glm::vec3* values, int count) const
+void Shader::set_vec3_array(GLint location, const glm::vec3 *values, int count) const
 {
     if (count > 0)
     {
-        glUniform3fv(location, count, reinterpret_cast<const float*>(&values[0]));
+        glUniform3fv(location, count, reinterpret_cast<const float *>(&values[0]));
     }
 }
 
@@ -180,5 +181,3 @@ void Shader::set_int(GLint location, int value) const
 {
     glUniform1i(location, value);
 }
-
-

@@ -14,6 +14,7 @@ class Transform;
 class MeshRenderer : public Component
 {
 public:
+    int instance_id = 0;
     MeshRenderer() = default;
     enum class RenderMode
     {
@@ -60,6 +61,7 @@ public:
         copy->smoothness = smoothness;
         copy->light_color = light_color;
         copy->render_mode = render_mode;
+        copy->instance_id = instance_id;
         return copy;
     }
 
