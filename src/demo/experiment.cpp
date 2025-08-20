@@ -35,59 +35,17 @@ public:
         // Create cat object
         GameObject &cat = scene_.CreateObject();
         auto *catTransform_ = cat.AddComponent<Transform>();
-        // catTransform_->position = glm::vec3(0.0f, 0.0f, 0.0f);
-        // catTransform_->rotation_euler = glm::vec3(-90.0f, 180.0f, 0.0f);
+        catTransform_->position = glm::vec3(0.0f, 0.0f, 0.0f);
+        catTransform_->rotation_euler = glm::vec3(-90.0f, 180.0f, 0.0f);
         Mesh mesh = ModelLoader::LoadFirstMeshFromFile("resources/cat/cat.fbx");
-        auto &cat_vertices = mesh.vertices;
-        auto &cat_indices = mesh.indices;
         auto meshPtrCat = std::make_shared<Mesh>(std::move(mesh));
-        std::cout << cat_vertices.size() << " " << cat_indices.size() << std::endl;
-
-        std::vector<MeshVertex> combined_vertices;
-        std::vector<unsigned int> combined_indices;
-        unsigned int vertex_offset = 0;
-        combined_vertices.reserve(10000);
-        combined_indices.reserve(10000);
-
-        for (int i = 0; i < 100; i++)
-        {
-            for (int j = 0; j < 100; j++)
-            {
-                glm::mat4 model = glm::mat4(1.0f);
-                model = glm::rotate(model, glm::radians(180.0f), glm::vec3(0.0f, 1.0f, 0.0f));
-                model = glm::rotate(model, glm::radians(-90.0f), glm::vec3(1.0f, 0.0f, 0.0f));
-                model = glm::translate(model, glm::vec3(i - 50, j, 0.0f));
-
-                for (const auto vertex : cat_vertices)
-                {
-                    MeshVertex transformed_vertex = vertex;
-                    transformed_vertex.position = model * glm::vec4(vertex.position, 1.0f);
-                    transformed_vertex.normal = glm::mat3(glm::transpose(glm::inverse(model))) * vertex.normal;
-                    combined_vertices.push_back(transformed_vertex);
-                }
-
-                for (unsigned int index : cat_indices)
-                {
-                    combined_indices.push_back(index + vertex_offset);
-                }
-
-                vertex_offset += cat_vertices.size();
-            }
-        }
-
-        // for (const auto vertex : combined_vertices)
-        // {
-        //     std::cout << vertex.position.x << " " << vertex.position.y << " " << vertex.position.z << std::endl;
-        // }
-
-        auto batched_mesh_ptr = std::make_shared<Mesh>(combined_vertices, combined_indices);
-        auto cat_mat = std::make_shared<Material>();
-        cat_mat->vertex_shader_path = "src/engine/shaders/lit.vert";
-        cat_mat->fragment_shader_path = "src/engine/shaders/lit.frag";
-        cat_mat->albedo_texture_path = "resources/cat/cattex.png";
-        cat_mat->color = glm::vec3(1.0f, 1.0f, 1.0f);
-        cat_mat->smoothness = 0.6f;
-        auto *cat_renderer = cat.AddComponent<MeshRenderer>(batched_mesh_ptr, cat_mat);
+        auto catMat = std::make_shared<Material>();
+        catMat->vertex_shader_path = "src/engine/shaders/lit.vert";
+        catMat->fragment_shader_path = "src/engine/shaders/lit.frag";
+        catMat->albedo_texture_path = "resources/cat/cattex.png";
+        catMat->color = glm::vec3(1.0f, 1.0f, 1.0f);
+        catMat->smoothness = 0.6f;
+        auto *cat_renderer = cat.AddComponent<MeshRenderer>(meshPtrCat, catMat);
 
         // Create plane object
         GameObject &plane = scene_.CreateObject();
@@ -107,8 +65,8 @@ public:
         // Create camera object (must exist to render)
         GameObject &cam_obj = scene_.CreateObject();
         auto *cam_transform = cam_obj.AddComponent<Transform>();
-        cam_transform->position = glm::vec3(0.0f, 30.0f, -30.0f);
-        cam_transform->rotation_euler = glm::vec3(-45.0f, 180.0f, 0.0f);
+        cam_transform->position = glm::vec3(0.0f, 2.0f, -7.0f);
+        cam_transform->rotation_euler = glm::vec3(-8.0f, 180.0f, 0.0f);
         auto *camera = cam_obj.AddComponent<Camera>();
         camera->field_of_view_degrees = 60.0f;
 
