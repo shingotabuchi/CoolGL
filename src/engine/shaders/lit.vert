@@ -10,9 +10,11 @@ uniform mat4 uProjection;
 uniform mat4 uView;
 uniform mat4 uModel;
 uniform bool u_isInstanced;
+uniform mat4 uLightSpaceMatrix;
 
 out vec3 vPosition; // world-space position
 out vec3 vNormal;   // world-space normal
+out vec4 vLightSpacePosition;
 out vec2 vUV;
 
 void main()
@@ -30,8 +32,8 @@ void main()
     gl_Position = uProjection * uView * finalModelMatrix * vec4(aPos, 1.0);
 
     vPosition = vec3(finalModelMatrix * vec4(aPos, 1.0));
-
     vNormal = transpose(inverse(mat3(finalModelMatrix))) * aNormal;
+    vLightSpacePosition = uLightSpaceMatrix * vec4(vPosition, 1.0);
 
     vUV = aUV;
 }

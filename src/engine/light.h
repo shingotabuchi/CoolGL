@@ -19,6 +19,7 @@ public:
 
     // Returns normalized incoming light direction in world space.
     glm::vec3 WorldDirection() const;
+    glm::mat4 GetLightSpaceMatrix() const;
 
     void OnAttach() override;
     void OnDetach() override;
@@ -32,7 +33,5 @@ public:
     }
 
 private:
-    mutable Transform* cached_transform_ = nullptr;
+    mutable Transform *cached_transform_ = nullptr;
 };
-
-

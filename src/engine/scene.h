@@ -49,6 +49,8 @@ public:
     void SetWindow(GLFWwindow *window) { window_ = window; }
     GLFWwindow *GetWindow() const { return window_; }
 
+    const std::vector<std::unique_ptr<GameObject>> &GetGameObjects() const { return objects_; };
+
 private:
     // Important: Declare manager containers before `objects_` so they
     // outlive `objects_` during destruction. Components' OnDetach may

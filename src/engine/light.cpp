@@ -24,6 +24,31 @@ glm::vec3 Light::WorldDirection() const
     return worldForward;
 }
 
+glm::mat4 Light::GetLightSpaceMatrix() const
+{
+    // Define the bounds of the light's view frustum
+    // These values should be tuned to tightly fit your scene
+    float near_plane = 1.0f, far_plane = 50.0f;
+    float frustum_size = 15.0f;
+    glm::mat4 lightProjection = glm::ortho(-frustum_size, frustum_size, -frustum_size, frustum_size, near_plane, far_plane);
+
+    // Light's position should be somewhere "behind" the scene looking towards the center
+    // The position is derived from its direction.
+    glm::vec3 lightPos = -WorldDirection() * 20.0f; // Move light back along its direction
+    glm::vec3 target = glm::vec3(0.0f);             // Looking at the world origin
+    glm::vec3 up = glm::vec3(0.0f, 1.0f, 0.0f);
+
+    // Check for gimbal lock case (light pointing straight up/down)
+    if (glm::abs(glm::dot(WorldDirection(), up)) > 0.99f)
+    {
+        up = glm::vec3(1.0f, 0.0f, 0.0f); // Use X-axis as up vector
+    }
+
+    glm::mat4 lightView = glm::lookAt(lightPos, target, up);
+
+    return lightProjection * lightView;
+}
+
 void Light::OnAttach()
 {
     cached_transform_ = nullptr;

@@ -26,7 +26,8 @@
 class ExperimentApp : public Application
 {
 public:
-    ExperimentApp() : Application(800, 800, "Cool GL")
+    Renderer renderer;
+    ExperimentApp(int width, int height) : Application(width, height, "Cool GL")
     {
         GLFWwindow *win = window_->Handle();
         InputManager::GetInstance().Initialize(win);
@@ -111,7 +112,28 @@ protected:
 
     void OnRender() override
     {
-        static Renderer renderer;
+        const Light *shadowCastingLight = scene_.GetLights()[0];
+        if (shadowCastingLight)
+        {
+            glm::mat4 lightSpaceMatrix = shadowCastingLight->GetLightSpaceMatrix();
+            renderer.BeginShadowPass(lightSpaceMatrix);
+
+            // Render all shadow-casting objects to the depth map
+            for (auto &gameObject : scene_.GetGameObjects())
+            {
+                auto meshRenderer = gameObject->GetComponent<MeshRenderer>();
+                if (meshRenderer)
+                {
+                    auto transform = gameObject->GetComponent<Transform>();
+                    renderer.DrawMeshForDepth(*meshRenderer->GetMesh(), transform->LocalToWorld());
+                }
+            }
+            renderer.EndShadowPass();
+            int screenWidth, screenHeight;
+            glfwGetFramebufferSize(window_->Handle(), &screenWidth, &screenHeight);
+            glViewport(0, 0, screenWidth, screenHeight);
+        }
+
         scene_.Render(renderer);
     }
 
@@ -133,7 +155,9 @@ private:
 
 int main()
 {
-    ExperimentApp app;
+    ExperimentApp app(800, 800);
+    app.renderer = Renderer{};
+    app.renderer.InitializeShadowMap(800, 800);
     app.Run();
     return 0;
 }

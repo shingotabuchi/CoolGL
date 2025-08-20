@@ -8,9 +8,6 @@
 class Renderer
 {
 public:
-    const static int SHADOW_MAP_WIDTH = 2048;
-    const static int SHADOW_MAP_HEIGHT = 2048;
-
     Renderer();
 
     void BeginFrame(float r, float g, float b, float a);
@@ -27,10 +24,12 @@ public:
         mesh.Draw();
     }
 
-    // void InitializeShadowMap();
-    // void BeginShadowPass(const glm::mat4 &lightSpaceMatrix);
-    // void EndShadowPass();
-    // void DrawMeshForDepth(const Mesh &mesh, const glm::mat4 &mvp);
+    void InitializeShadowMap(int width, int height);
+    void SetViewport(int width, int height);
+    void BeginShadowPass(const glm::mat4 &lightSpaceMatrix);
+    void EndShadowPass();
+    void DrawMeshForDepth(const Mesh &mesh, const glm::mat4 &mvp);
+    GLuint GetShadowMapTexture() const { return m_shadowMapTexture; }
 
 private:
     struct CachedLightState
@@ -44,5 +43,10 @@ private:
 
     static CachedLightState s_cached_light_state_;
 
-    std::unique_ptr<Shader> _depthShader;
+    GLuint m_shadowMapFBO = 0;
+    GLuint m_shadowMapTexture = 0;
+    int m_shadowMapWidth = 0;
+    int m_shadowMapHeight = 0;
+    std::unique_ptr<Shader> m_depthShader;
+    glm::mat4 m_lightSpaceMatrix;
 };

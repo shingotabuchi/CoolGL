@@ -46,7 +46,6 @@ public:
         catMat->color = glm::vec3(1.0f, 1.0f, 1.0f);
         catMat->smoothness = 0.6f;
         auto *cat_renderer = cat.AddComponent<MeshRenderer>(meshPtrCat, catMat);
-        cat_renderer->instance_id = 1;
 
         for (int i = 0; i < 100; i++)
         {
