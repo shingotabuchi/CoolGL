@@ -39,6 +39,22 @@ public:
         catTransform_->rotation_euler = glm::vec3(-90.0f, 180.0f, 0.0f);
         Mesh mesh = ModelLoader::LoadFirstMeshFromFile("resources/cat/cat.fbx");
         auto meshPtrCat = std::make_shared<Mesh>(std::move(mesh));
+        meshPtrCat->instance_id = 1;
+        std::vector<glm::mat4> cat_matrices;
+        cat_matrices.reserve(10000);
+        for (int i = 0; i < 100; i++)
+        {
+            for (int j = 0; j < 100; j++)
+            {
+                glm::mat4 model = glm::mat4(1.0f);
+                model = glm::translate(model, glm::vec3(i - 50, 0.0f, j));
+                model = glm::rotate(model, glm::radians(-90.0f), glm::vec3(1.0f, 0.0f, 0.0f));
+                model = glm::rotate(model, glm::radians(180.0f), glm::vec3(0.0f, 0.0f, 1.0f));
+
+                cat_matrices.push_back(model);
+            }
+        }
+        meshPtrCat->CreateInstanceBuffer(cat_matrices);
         auto catMat = std::make_shared<Material>();
         catMat->vertex_shader_path = "src/engine/shaders/lit.vert";
         catMat->fragment_shader_path = "src/engine/shaders/lit.frag";
@@ -46,21 +62,20 @@ public:
         catMat->color = glm::vec3(1.0f, 1.0f, 1.0f);
         catMat->smoothness = 0.6f;
         auto *cat_renderer = cat.AddComponent<MeshRenderer>(meshPtrCat, catMat);
-        cat_renderer->instance_id = 1;
 
-        for (int i = 0; i < 100; i++)
-        {
-            for (int j = 0; j < 100; j++)
-            {
-                if (i == 50 && j == 0)
-                {
-                    continue;
-                }
-                GameObject &clone = scene_.Instantiate(cat);
-                auto *clone_transform = clone.GetComponent<Transform>();
-                clone_transform->position = glm::vec3(i - 50, 0.0f, j);
-            }
-        }
+        // for (int i = 0; i < 100; i++)
+        // {
+        //     for (int j = 0; j < 100; j++)
+        //     {
+        //         if (i == 50 && j == 0)
+        //         {
+        //             continue;
+        //         }
+        //         GameObject &clone = scene_.Instantiate(cat);
+        //         auto *clone_transform = clone.GetComponent<Transform>();
+        //         clone_transform->position = glm::vec3(i - 50, 0.0f, j);
+        //     }
+        // }
 
         // Create plane object
         GameObject &plane = scene_.CreateObject();

@@ -198,7 +198,6 @@ void MeshRenderer::OnRender(Renderer &renderer, const glm::mat4 &projection, con
         shader_->set_mat4("uModel", model);
         shader_->set_mat4("uView", view);
         shader_->set_mat4("uProjection", projection);
-        shader_->set_int("u_isInstanced", instance_id > 0);
         renderer.DrawMesh(*mesh_, *shader_);
     }
 }

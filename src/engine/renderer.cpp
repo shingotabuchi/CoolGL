@@ -93,6 +93,17 @@ void Renderer::DrawMesh(const Mesh &mesh,
         shader.set_vec3("uCamPos", s_cached_light_state_.cam_pos);
     }
 
+    const bool is_instanced = mesh.instance_id > 0;
+
+    shader.set_int("u_isInstanced", is_instanced);
     mesh.Bind();
-    mesh.Draw();
+
+    if (is_instanced)
+    {
+        mesh.DrawInstanced();
+    }
+    else
+    {
+        mesh.Draw();
+    }
 }

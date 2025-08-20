@@ -89,6 +89,7 @@ void Mesh::Draw() const
 
 void Mesh::CreateInstanceBuffer(const std::vector<glm::mat4> &model_matrices)
 {
+    instance_size_ = model_matrices.size();
     // If we already have an instance buffer, delete it first
     if (instance_vbo_)
     {
@@ -97,7 +98,7 @@ void Mesh::CreateInstanceBuffer(const std::vector<glm::mat4> &model_matrices)
 
     glGenBuffers(1, &instance_vbo_);
     glBindBuffer(GL_ARRAY_BUFFER, instance_vbo_);
-    glBufferData(GL_ARRAY_BUFFER, model_matrices.size() * sizeof(glm::mat4), model_matrices.data(), GL_STATIC_DRAW);
+    glBufferData(GL_ARRAY_BUFFER, instance_size_ * sizeof(glm::mat4), model_matrices.data(), GL_STATIC_DRAW);
 
     // We need to tell the VAO how to interpret this new buffer data.
     glBindVertexArray(vao_);
@@ -125,8 +126,8 @@ void Mesh::CreateInstanceBuffer(const std::vector<glm::mat4> &model_matrices)
 }
 
 // ✨ Here is the new instanced draw call implementation ✨
-void Mesh::DrawInstanced(GLsizei instance_count) const
+void Mesh::DrawInstanced() const
 {
     // The second-to-last argument is the number of instances to render.
-    glDrawElementsInstanced(GL_TRIANGLES, index_count_, GL_UNSIGNED_INT, 0, instance_count);
+    glDrawElementsInstanced(GL_TRIANGLES, index_count_, GL_UNSIGNED_INT, 0, instance_size_);
 }

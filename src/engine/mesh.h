@@ -14,6 +14,7 @@ struct MeshVertex
 class Mesh
 {
 public:
+    int instance_id;
     Mesh() = default;
     Mesh(const std::vector<MeshVertex> &vertices, const std::vector<unsigned int> &indices);
 
@@ -27,7 +28,7 @@ public:
 
     void Bind() const;
     void Draw() const;
-    void DrawInstanced(GLsizei instance_count) const;
+    void DrawInstanced() const;
 
 private:
     void CreateBuffers(const std::vector<MeshVertex> &vertices, const std::vector<unsigned int> &indices);
@@ -38,5 +39,6 @@ private:
     GLuint ebo_ = 0;
     GLuint instance_vbo_ = 0;
     GLsizei index_count_ = 0;
+    int instance_size_;
     // Future: consider primitive restart or 32-bit indices based on size
 };
