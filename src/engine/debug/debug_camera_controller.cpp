@@ -52,11 +52,60 @@ void DebugCameraController::OnUpdate(float timeSeconds)
     const bool right_down = glfwGetMouseButton(window_, GLFW_MOUSE_BUTTON_RIGHT) == GLFW_PRESS;
     const bool left_down = glfwGetMouseButton(window_, GLFW_MOUSE_BUTTON_LEFT) == GLFW_PRESS;
 
-    // Camera Rotation
-    if (right_down)
+    const bool right_arrow_down = glfwGetKey(window_, GLFW_KEY_RIGHT) == GLFW_PRESS;
+    const bool left_arrow_down = glfwGetKey(window_, GLFW_KEY_LEFT) == GLFW_PRESS;
+    const bool up_arrow_down = glfwGetKey(window_, GLFW_KEY_UP) == GLFW_PRESS;
+    const bool down_arrow_down = glfwGetKey(window_, GLFW_KEY_DOWN) == GLFW_PRESS;
+
+    const bool w_down = glfwGetKey(window_, GLFW_KEY_W) == GLFW_PRESS;
+    const bool a_down = glfwGetKey(window_, GLFW_KEY_A) == GLFW_PRESS;
+    const bool s_down = glfwGetKey(window_, GLFW_KEY_S) == GLFW_PRESS;
+    const bool d_down = glfwGetKey(window_, GLFW_KEY_D) == GLFW_PRESS;
+
+    double arrow_dx = 0;
+    double arrow_dy = 0;
+    if (right_arrow_down)
     {
-        cached_transform_->rotation_euler.y += static_cast<float>(dx) * rotate_sensitivity;
-        cached_transform_->rotation_euler.x += static_cast<float>(dy) * rotate_sensitivity;
+        arrow_dx -= 0.1;
+    }
+    if (left_arrow_down)
+    {
+        arrow_dx += 0.1;
+    }
+    if (up_arrow_down)
+    {
+        arrow_dy += 0.1;
+    }
+    if (down_arrow_down)
+    {
+        arrow_dy -= 0.1;
+    }
+
+    double wasd_forward = 0;
+    double wasd_right = 0;
+
+    if (w_down)
+    {
+        wasd_forward += 0.1;
+    }
+    if (s_down)
+    {
+        wasd_forward -= 0.1;
+    }
+    if (a_down)
+    {
+        wasd_right -= 0.1;
+    }
+    if (d_down)
+    {
+        wasd_right += 0.1;
+    }
+
+    // Camera Rotation
+    if (right_down || right_arrow_down || left_arrow_down || up_arrow_down || down_arrow_down)
+    {
+        cached_transform_->rotation_euler.y += static_cast<float>(dx + arrow_dx) * rotate_sensitivity;
+        cached_transform_->rotation_euler.x += static_cast<float>(dy + arrow_dy) * rotate_sensitivity;
         cached_transform_->rotation_euler.x = glm::clamp(cached_transform_->rotation_euler.x, -89.0f, 89.0f);
     }
 
@@ -69,6 +118,15 @@ void DebugCameraController::OnUpdate(float timeSeconds)
         const glm::vec3 cam_up = glm::normalize(rot * glm::vec3(0, 1, 0));
         const glm::vec3 pan_delta = cam_right * static_cast<float>(-dx) * pan_sensitivity + cam_up * static_cast<float>(dy) * pan_sensitivity;
         cached_transform_->position += pan_delta;
+    }
+    if (wasd_forward != 0.0 || wasd_right != 0.0)
+    {
+        const glm::mat3 rot = glm::mat3_cast(current_orientation);
+        const glm::vec3 cam_right = glm::normalize(rot * glm::vec3(1, 0, 0));
+        // const glm::vec3 forward = glm::cross(cam_right, glm::vec3(0, 1, 0));
+        const glm::vec3 forward = glm::normalize(rot * glm::vec3(0, 0, -1));
+        cached_transform_->position += forward * static_cast<float>(wasd_forward) * pan_sensitivity * 2.0f;
+        cached_transform_->position += cam_right * static_cast<float>(wasd_right) * pan_sensitivity * 2.0f;
     }
 
     // Zooming (using the value from OnScroll)

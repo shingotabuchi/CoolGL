@@ -48,6 +48,10 @@ public:
         catMat->smoothness = 0.6f;
         auto *cat_renderer = cat.AddComponent<MeshRenderer>(meshPtrCat, catMat);
 
+        GameObject &cat_clone = scene_.Instantiate(cat);
+        auto *cat_clone_transform = cat_clone.GetComponent<Transform>();
+        cat_clone_transform->position = glm::vec3(1.0f, 0.0f, 0.0f);
+
         // Create plane object
         GameObject &plane = scene_.CreateObject();
         auto *plane_transform = plane.AddComponent<Transform>();
